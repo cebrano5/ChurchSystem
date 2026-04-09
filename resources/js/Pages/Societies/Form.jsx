@@ -5,7 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 
-export default function SocietyForm({ society, districts }) {
+export default function SocietyForm({ society, admin, districts }) {
     const isEditing = !!society;
 
     const { data, setData, post, put, processing, errors } = useForm({
@@ -14,7 +14,12 @@ export default function SocietyForm({ society, districts }) {
         address: society?.address || '',
         contact_person: society?.contact_person || '',
         contact_phone: society?.contact_phone || '',
+        // Admin credentials
+        admin_name: admin?.name || '',
+        admin_username: admin?.username || '',
+        admin_password: '',
     });
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -106,6 +111,55 @@ export default function SocietyForm({ society, districts }) {
                             <InputError message={errors.contact_phone} className="mt-2" />
                         </div>
                     </div>
+
+                    <div className="mt-8 pt-6 border-t border-slate-100">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Administrator Credentials</h3>
+                        <p className="text-sm text-slate-500 mb-6">
+                            Assign or update the primary administrator for this local society.
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="mb-4">
+                                <InputLabel htmlFor="admin_name" value="Admin Display Name" />
+                                <TextInput
+                                    id="admin_name"
+                                    type="text"
+                                    className="w-full mt-1"
+                                    value={data.admin_name}
+                                    onChange={e => setData('admin_name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.admin_name} className="mt-2" />
+                            </div>
+
+                            <div className="mb-4">
+                                <InputLabel htmlFor="admin_username" value="Admin Username (Login ID)" />
+                                <TextInput
+                                    id="admin_username"
+                                    type="text"
+                                    className="w-full mt-1"
+                                    value={data.admin_username}
+                                    onChange={e => setData('admin_username', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.admin_username} className="mt-2" />
+                            </div>
+
+                            <div className="mb-4">
+                                <InputLabel htmlFor="admin_password" value={isEditing ? "Admin Password (leave blank to keep current)" : "Admin Password"} />
+                                <TextInput
+                                    id="admin_password"
+                                    type="password"
+                                    className="w-full mt-1"
+                                    value={data.admin_password}
+                                    onChange={e => setData('admin_password', e.target.value)}
+                                    required={!isEditing}
+                                />
+                                <InputError message={errors.admin_password} className="mt-2" />
+                            </div>
+                        </div>
+                    </div>
+
 
                     <div className="flex justify-end pt-4 border-t border-slate-100">
                         <PrimaryButton disabled={processing} className="bg-[#1e3a5f]">

@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\AnnualConference;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+
 
 class AnnualConferenceController extends Controller
 {
@@ -18,7 +23,12 @@ class AnnualConferenceController extends Controller
             abort(403);
         }
 
-        $conferences = AnnualConference::withCount('districts')->orderBy('name')->get();
+        $conferences = AnnualConference::withCount('districts')
+            ->with(['admins' => function($q) {
+                $q->limit(1); // Usually one primary admin
+            }])
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Conferences/Index', [
             'conferences' => $conferences,
@@ -53,11 +63,31 @@ class AnnualConferenceController extends Controller
             'region'         => 'required|string|max:255',
             'description'    => 'nullable|string',
             'established_at' => 'required|date',
+            // Admin Credentials
+            'admin_name'     => 'required|string|max:255',
+            'admin_username' => 'required|string|max:255|unique:users,username',
+            'admin_password' => 'required|string|min:8',
         ]);
 
-        AnnualConference::create($validated);
+        DB::transaction(function () use ($validated) {
+            $conference = AnnualConference::create([
+                'name'           => $validated['name'],
+                'region'         => $validated['region'],
+                'description'    => $validated['description'],
+                'established_at' => $validated['established_at'],
+            ]);
 
-        return redirect()->route('conferences.index')->with('success', 'Annual Conference created successfully.');
+            User::create([
+                'name'       => $validated['admin_name'],
+                'username'   => $validated['admin_username'],
+                'password'   => Hash::make($validated['admin_password']),
+                'role'       => 'conference_admin',
+                'scope_id'   => $conference->id,
+                'scope_type' => AnnualConference::class,
+            ]);
+        });
+
+        return redirect()->route('conferences.index')->with('success', 'Annual Conference and Administrator created successfully.');
     }
 
     /**
@@ -70,8 +100,11 @@ class AnnualConferenceController extends Controller
             abort(403);
         }
 
+        $conference->load('admins');
+
         return Inertia::render('Conferences/Form', [
             'conference' => $conference,
+            'admin' => $conference->admins->first(),
         ]);
     }
 
@@ -85,17 +118,52 @@ class AnnualConferenceController extends Controller
             abort(403);
         }
 
+        $admin = $conference->admins->first();
+
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'region'         => 'required|string|max:255',
             'description'    => 'nullable|string',
             'established_at' => 'required|date',
+            // Admin Credentials
+            'admin_name'     => 'required|string|max:255',
+            'admin_username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
+            'admin_password' => 'nullable|string|min:8',
         ]);
 
-        $conference->update($validated);
+        DB::transaction(function () use ($conference, $admin, $validated) {
+            $conference->update([
+                'name'           => $validated['name'],
+                'region'         => $validated['region'],
+                'description'    => $validated['description'],
+                'established_at' => $validated['established_at'],
+            ]);
 
-        return redirect()->route('conferences.index')->with('success', 'Annual Conference updated successfully.');
+            if ($admin) {
+                $adminData = [
+                    'name'     => $validated['admin_name'],
+                    'username' => $validated['admin_username'],
+                ];
+                if (!empty($validated['admin_password'])) {
+                    $adminData['password'] = Hash::make($validated['admin_password']);
+                }
+                $admin->update($adminData);
+            } else {
+                // Create one if it mysteriously doesn't exist
+                User::create([
+                    'name'       => $validated['admin_name'],
+                    'username'   => $validated['admin_username'],
+                    'password'   => Hash::make($validated['admin_password'] ?? 'password123'),
+                    'role'       => 'conference_admin',
+                    'scope_id'   => $conference->id,
+                    'scope_type' => AnnualConference::class,
+                ]);
+            }
+        });
+
+        return redirect()->route('conferences.index')->with('success', 'Annual Conference and Administrator updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

@@ -16,17 +16,22 @@ class MemberController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Member::with('localSociety');
+        
+        // Use the centralized scoping logic from the User model
+        $societyIds = $user->getAccessibleSocietyIds();
+        
+        $query = Member::whereIn('local_society_id', $societyIds)
+            ->with('localSociety.district.annualConference')
+            ->orderBy('last_name')
+            ->orderBy('first_name');
 
-        if ($user->isSocietyAdmin()) {
-            $query->where('local_society_id', $user->scope_id);
-        }
 
         return Inertia::render('Members/Index', [
             'members' => $query->paginate(10),
-            'canManage' => $user->isSocietyAdmin()
+            'canManage' => $user->isSocietyAdmin() // Only society admins can CRUD members for now
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

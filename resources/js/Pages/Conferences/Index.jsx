@@ -36,7 +36,9 @@ export default function ConferencesIndex({ conferences, flash }) {
                             <th className="p-4">Name</th>
                             <th className="p-4">Region</th>
                             <th className="p-4">Districts Count</th>
+                            <th className="p-4">Primary Administrator</th>
                             <th className="p-4 text-right">Actions</th>
+
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
@@ -45,6 +47,17 @@ export default function ConferencesIndex({ conferences, flash }) {
                                 <td className="p-4 text-slate-800 font-medium">{c.name}</td>
                                 <td className="p-4 text-slate-600">{c.region}</td>
                                 <td className="p-4 text-slate-600">{c.districts_count}</td>
+                                <td className="p-4 text-slate-600">
+                                    {c.admins?.[0] ? (
+                                        <div>
+                                            <div className="font-semibold text-slate-700">{c.admins[0].name}</div>
+                                            <div className="text-xs text-slate-400">@{c.admins[0].username}</div>
+                                        </div>
+                                    ) : (
+                                        <span className="italic text-slate-400">Not Assigned</span>
+                                    )}
+                                </td>
+
                                 <td className="p-4 text-right space-x-3">
                                     <Link href={route('conferences.edit', c.id)} className="text-[#c9a227] hover:text-yellow-600 font-medium">
                                         Edit

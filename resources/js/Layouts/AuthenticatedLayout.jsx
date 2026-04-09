@@ -11,15 +11,15 @@ export default function AuthenticatedLayout({ header, children }) {
     // Determine which menu items to show based on role
     const getMenu = () => {
         const menu = [
-            { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon, show: true },
-            { name: 'Administrators', href: route('users.index'), icon: UserGroupIcon, show: ['national_admin', 'conference_admin', 'district_admin'].includes(user.role) },
-            { name: 'Conferences', href: route('conferences.index'), icon: GlobeAltIcon, show: ['national_admin'].includes(user.role) },
-            { name: 'Districts', href: route('districts.index'), icon: BuildingOfficeIcon, show: ['national_admin', 'conference_admin'].includes(user.role) },
-            { name: 'Societies', href: route('societies.index'), icon: BuildingOfficeIcon, show: ['national_admin', 'conference_admin', 'district_admin'].includes(user.role) },
-            { name: 'Members', href: route('members.index'), icon: UserGroupIcon, show: true },
-            { name: 'Ministries', href: route('ministries.index'), icon: UserGroupIcon, show: true },
-            { name: 'Events & Attendance', href: route('events.index'), icon: CalendarIcon, show: true },
-            { name: 'Donations', href: route('donations.index'), icon: CurrencyDollarIcon, show: true },
+            { name: 'Dashboard', routeName: 'dashboard', icon: HomeIcon, show: true },
+            { name: 'Administrators', routeName: 'users.index', icon: UserGroupIcon, show: ['national_admin', 'conference_admin', 'district_admin'].includes(user.role) },
+            { name: 'Conferences', routeName: 'conferences.index', icon: GlobeAltIcon, show: ['national_admin'].includes(user.role) },
+            { name: 'Districts', routeName: 'districts.index', icon: BuildingOfficeIcon, show: ['national_admin', 'conference_admin'].includes(user.role) },
+            { name: 'Societies', routeName: 'societies.index', icon: BuildingOfficeIcon, show: ['national_admin', 'conference_admin', 'district_admin'].includes(user.role) },
+            { name: 'Members', routeName: 'members.index', icon: UserGroupIcon, show: true },
+            { name: 'Ministries', routeName: 'ministries.index', icon: UserGroupIcon, show: true },
+            { name: 'Events & Attendance', routeName: 'events.index', icon: CalendarIcon, show: true },
+            { name: 'Donations', routeName: 'donations.index', icon: CurrencyDollarIcon, show: true },
         ];
         return menu.filter(item => item.show);
     };
@@ -36,9 +36,9 @@ export default function AuthenticatedLayout({ header, children }) {
                     {getMenu().map((item) => (
                         <Link
                             key={item.name}
-                            href={item.href}
+                            href={route(item.routeName)}
                             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                                route().current() === item.href.split('?')[0].split('/').pop() // simplistic active check
+                                route().current(item.routeName.split('.')[0] + '.*') || route().current(item.routeName)
                                 ? 'bg-[#2a4d7a] text-white' 
                                 : 'text-slate-300 hover:bg-[#2a4d7a] hover:text-white'
                             }`}
@@ -48,6 +48,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     ))}
                 </div>
+
 
                 <div className="p-4 border-t border-[#2a4d7a] text-sm">
                     <div className="truncate text-slate-300">{user.name}</div>

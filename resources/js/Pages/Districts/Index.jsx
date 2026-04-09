@@ -40,7 +40,9 @@ export default function DistrictsIndex({ districts, flash }) {
                             <th className="p-4">Name</th>
                             <th className="p-4">Conference</th>
                             <th className="p-4">Local Societies Count</th>
+                            <th className="p-4">Primary Administrator</th>
                             {canManage && <th className="p-4 text-right">Actions</th>}
+
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
@@ -49,6 +51,17 @@ export default function DistrictsIndex({ districts, flash }) {
                                 <td className="p-4 text-slate-800 font-medium">{d.name}</td>
                                 <td className="p-4 text-slate-600">{d.annual_conference?.name || 'N/A'}</td>
                                 <td className="p-4 text-slate-600">{d.local_societies_count}</td>
+                                <td className="p-4 text-slate-600">
+                                    {d.admins?.[0] ? (
+                                        <div>
+                                            <div className="font-semibold text-slate-700">{d.admins[0].name}</div>
+                                            <div className="text-xs text-slate-400">@{d.admins[0].username}</div>
+                                        </div>
+                                    ) : (
+                                        <span className="italic text-slate-400">Not Assigned</span>
+                                    )}
+                                </td>
+
                                 {canManage && (
                                     <td className="p-4 text-right space-x-3">
                                         <Link href={route('districts.edit', d.id)} className="text-[#c9a227] hover:text-yellow-600 font-medium">

@@ -135,8 +135,9 @@ class UserManagementController extends Controller
             'username'   => $validated['username'],
             'password'   => Hash::make($validated['password']),
             'role'       => $validated['role'],
-            'scope_id   ' => $validated['scope_id'],
+            'scope_id'   => $validated['scope_id'],
             'scope_type' => $scopeTypeMap[$validated['role']],
+
         ]);
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');

@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
+
 export default function MembersIndex({ members, canManage, flash }) {
     const { delete: destroy } = useForm();
 
@@ -9,6 +10,9 @@ export default function MembersIndex({ members, canManage, flash }) {
             destroy(route('members.destroy', id));
         }
     };
+
+    const memberData = members?.data || [];
+    const links = members?.links || [];
 
     return (
         <AuthenticatedLayout header="Members Directory">
@@ -36,23 +40,25 @@ export default function MembersIndex({ members, canManage, flash }) {
                     <thead>
                         <tr className="bg-slate-50 border-b border-slate-100 uppercase text-xs font-semibold text-slate-500 tracking-wider">
                             <th className="p-4">Name</th>
+                            <th className="p-4">Conference</th>
+                            <th className="p-4">District</th>
                             <th className="p-4">Society</th>
-                            <th className="p-4">Phone</th>
-                            <th className="p-4">Email</th>
                             <th className="p-4">Status</th>
+
                             {canManage && <th className="p-4 text-right">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
-                        {members.data?.map((member) => (
+                        {memberData.map((member) => (
                             <tr key={member.id} className="hover:bg-slate-50 transition">
                                 <td className="p-4 font-medium text-slate-800">
                                     {member.first_name} {member.last_name}
                                 </td>
+                                <td className="p-4 text-slate-600">{member.local_society?.district?.annual_conference?.name || 'N/A'}</td>
+                                <td className="p-4 text-slate-600">{member.local_society?.district?.name || 'N/A'}</td>
                                 <td className="p-4 text-slate-600">{member.local_society?.name || 'N/A'}</td>
-                                <td className="p-4 text-slate-600">{member.phone || '-'}</td>
-                                <td className="p-4 text-slate-600">{member.email || '-'}</td>
                                 <td className="p-4">
+
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                         member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
                                     }`}>
@@ -79,24 +85,29 @@ export default function MembersIndex({ members, canManage, flash }) {
                         ))}
                     </tbody>
                 </table>
-                {!members.data?.length && (
+                {memberData.length === 0 && (
                     <div className="p-8 text-center text-slate-500">No members found.</div>
                 )}
             </div>
             
             {/* Simple Pagination */}
-            {members.links && members.links.length > 3 && (
+            {links.length > 3 && (
                 <div className="mt-6 flex justify-center space-x-1">
-                    {members.links.map((link, i) => (
-                        <Link
-                            key={i}
-                            href={link.url}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                            className={`px-3 py-1 rounded ${link.active ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200'} ${!link.url && 'opacity-50 cursor-not-allowed'}`}
-                        />
-                    ))}
+                    {links.map((link, i) => {
+                        const isPrevNext = link.label.includes('&laquo;') || link.label.includes('&raquo;');
+                        return (
+                            <Link
+                                key={i}
+                                href={link.url || '#'}
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                className={`px-3 py-1 rounded ${link.active ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200'} ${!link.url && 'opacity-50 cursor-not-allowed'}`}
+                                onClick={(e) => { if (!link.url) e.preventDefault(); }}
+                            />
+                        );
+                    })}
                 </div>
             )}
         </AuthenticatedLayout>
     );
 }
+

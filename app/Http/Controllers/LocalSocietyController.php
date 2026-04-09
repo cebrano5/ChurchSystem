@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\LocalSociety;
 use App\Models\District;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class LocalSocietyController extends Controller
@@ -16,7 +19,12 @@ class LocalSocietyController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = LocalSociety::with('district.annualConference')->withCount('members')->orderBy('name');
+        $query = LocalSociety::with('district.annualConference')
+            ->withCount('members')
+            ->with(['admins' => function($q) {
+                $q->limit(1);
+            }])
+            ->orderBy('name');
 
         if ($user->isConferenceAdmin()) {
             $query->whereHas('district', function ($q) use ($user) {
@@ -77,11 +85,32 @@ class LocalSocietyController extends Controller
             'address'        => 'required|string',
             'contact_person' => 'required|string|max:255',
             'contact_phone'  => 'required|string|max:255',
+            // Admin Credentials
+            'admin_name'     => 'required|string|max:255',
+            'admin_username' => 'required|string|max:255|unique:users,username',
+            'admin_password' => 'required|string|min:8',
         ]);
 
-        LocalSociety::create($validated);
+        DB::transaction(function () use ($validated) {
+            $society = LocalSociety::create([
+                'district_id'    => $validated['district_id'],
+                'name'           => $validated['name'],
+                'address'        => $validated['address'],
+                'contact_person' => $validated['contact_person'],
+                'contact_phone'  => $validated['contact_phone'],
+            ]);
 
-        return redirect()->route('societies.index')->with('success', 'Local Society created successfully.');
+            User::create([
+                'name'       => $validated['admin_name'],
+                'username'   => $validated['admin_username'],
+                'password'   => Hash::make($validated['admin_password']),
+                'role'       => 'society_admin',
+                'scope_id'   => $society->id,
+                'scope_type' => LocalSociety::class,
+            ]);
+        });
+
+        return redirect()->route('societies.index')->with('success', 'Local Society and Administrator created successfully.');
     }
 
     /**
@@ -109,8 +138,11 @@ class LocalSocietyController extends Controller
             $districts = District::where('id', $user->scope_id)->with('annualConference')->get();
         }
 
+        $society->load('admins');
+
         return Inertia::render('Societies/Form', [
             'society' => $society,
+            'admin' => $society->admins->first(),
             'districts' => $districts,
         ]);
     }
@@ -132,6 +164,8 @@ class LocalSocietyController extends Controller
             abort(403);
         }
 
+        $admin = $society->admins->first();
+
         $validDistrictIds = [];
         if ($user->isNationalAdmin()) {
             $validDistrictIds = District::pluck('id')->toArray();
@@ -147,12 +181,45 @@ class LocalSocietyController extends Controller
             'address'        => 'required|string',
             'contact_person' => 'required|string|max:255',
             'contact_phone'  => 'required|string|max:255',
+            // Admin Credentials
+            'admin_name'     => 'required|string|max:255',
+            'admin_username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
+            'admin_password' => 'nullable|string|min:8',
         ]);
 
-        $society->update($validated);
+        DB::transaction(function () use ($society, $admin, $validated) {
+            $society->update([
+                'district_id'    => $validated['district_id'],
+                'name'           => $validated['name'],
+                'address'        => $validated['address'],
+                'contact_person' => $validated['contact_person'],
+                'contact_phone'  => $validated['contact_phone'],
+            ]);
 
-        return redirect()->route('societies.index')->with('success', 'Local Society updated successfully.');
+            if ($admin) {
+                $adminData = [
+                    'name'     => $validated['admin_name'],
+                    'username' => $validated['admin_username'],
+                ];
+                if (!empty($validated['admin_password'])) {
+                    $adminData['password'] = Hash::make($validated['admin_password']);
+                }
+                $admin->update($adminData);
+            } else {
+                User::create([
+                    'name'       => $validated['admin_name'],
+                    'username'   => $validated['admin_username'],
+                    'password'   => Hash::make($validated['admin_password'] ?? 'password123'),
+                    'role'       => 'society_admin',
+                    'scope_id'   => $society->id,
+                    'scope_type' => LocalSociety::class,
+                ]);
+            }
+        });
+
+        return redirect()->route('societies.index')->with('success', 'Local Society and Administrator updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

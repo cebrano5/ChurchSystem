@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\LocalSociety;
+use App\Models\District;
+
 
 /**
  * User Model
@@ -91,6 +94,38 @@ class User extends Authenticatable
             'society_admin'    => 'Society Administrator',
             default            => 'Unknown Role',
         };
+    }
+
+    // ─── Scoping Helpers ─────────────────────────────────────────────────────
+
+    /**
+     * Get an array of LocalSociety IDs that this user is authorized to view/manage.
+     * This centralizes the hierarchy logic for reporting and filtering.
+     */
+    public function getAccessibleSocietyIds(): array
+    {
+        if ($this->isNationalAdmin()) {
+            return LocalSociety::pluck('id')->toArray();
+        }
+
+        if ($this->isConferenceAdmin()) {
+            // All societies within districts belonging to this conference
+            return LocalSociety::whereHas('district', function ($q) {
+                $q->where('annual_conference_id', $this->scope_id);
+            })->pluck('id')->toArray();
+        }
+
+        if ($this->isDistrictAdmin()) {
+            // All societies within this district
+            return LocalSociety::where('district_id', $this->scope_id)->pluck('id')->toArray();
+        }
+
+        if ($this->isSocietyAdmin()) {
+            // Just this specific society
+            return [$this->scope_id];
+        }
+
+        return [];
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────

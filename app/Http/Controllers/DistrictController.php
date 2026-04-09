@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\District;
 use App\Models\AnnualConference;
+use App\Models\User;
+use App\Models\LocalSociety;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class DistrictController extends Controller
@@ -16,7 +20,12 @@ class DistrictController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = District::with('annualConference')->withCount('localSocieties')->orderBy('name');
+        $query = District::with('annualConference')
+            ->withCount('localSocieties')
+            ->with(['admins' => function($q) {
+                $q->limit(1);
+            }])
+            ->orderBy('name');
 
         if ($user->isConferenceAdmin()) {
             $query->where('annual_conference_id', $user->scope_id);
@@ -65,11 +74,30 @@ class DistrictController extends Controller
             'annual_conference_id' => $conferenceValidation,
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            // Admin Credentials
+            'admin_name'           => 'required|string|max:255',
+            'admin_username'       => 'required|string|max:255|unique:users,username',
+            'admin_password'       => 'required|string|min:8',
         ]);
 
-        District::create($validated);
+        DB::transaction(function () use ($validated) {
+            $district = District::create([
+                'annual_conference_id' => $validated['annual_conference_id'],
+                'name'                 => $validated['name'],
+                'description'          => $validated['description'],
+            ]);
 
-        return redirect()->route('districts.index')->with('success', 'District created successfully.');
+            User::create([
+                'name'       => $validated['admin_name'],
+                'username'   => $validated['admin_username'],
+                'password'   => Hash::make($validated['admin_password']),
+                'role'       => 'district_admin',
+                'scope_id'   => $district->id,
+                'scope_type' => District::class,
+            ]);
+        });
+
+        return redirect()->route('districts.index')->with('success', 'District and Administrator created successfully.');
     }
 
     /**
@@ -91,8 +119,11 @@ class DistrictController extends Controller
             $conferences = AnnualConference::where('id', $user->scope_id)->get();
         }
 
+        $district->load('admins');
+
         return Inertia::render('Districts/Form', [
             'district' => $district,
+            'admin' => $district->admins->first(),
             'conferences' => $conferences,
         ]);
     }
@@ -110,6 +141,8 @@ class DistrictController extends Controller
             abort(403);
         }
 
+        $admin = $district->admins->first();
+
         $conferenceValidation = ['required', 'integer', Rule::exists('annual_conferences', 'id')];
         if ($user->isConferenceAdmin()) {
             $conferenceValidation[] = Rule::in([$user->scope_id]);
@@ -119,12 +152,43 @@ class DistrictController extends Controller
             'annual_conference_id' => $conferenceValidation,
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            // Admin Credentials
+            'admin_name'           => 'required|string|max:255',
+            'admin_username'       => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
+            'admin_password'       => 'nullable|string|min:8',
         ]);
 
-        $district->update($validated);
+        DB::transaction(function () use ($district, $admin, $validated) {
+            $district->update([
+                'annual_conference_id' => $validated['annual_conference_id'],
+                'name'                 => $validated['name'],
+                'description'          => $validated['description'],
+            ]);
 
-        return redirect()->route('districts.index')->with('success', 'District updated successfully.');
+            if ($admin) {
+                $adminData = [
+                    'name'     => $validated['admin_name'],
+                    'username' => $validated['admin_username'],
+                ];
+                if (!empty($validated['admin_password'])) {
+                    $adminData['password'] = Hash::make($validated['admin_password']);
+                }
+                $admin->update($adminData);
+            } else {
+                User::create([
+                    'name'       => $validated['admin_name'],
+                    'username'   => $validated['admin_username'],
+                    'password'   => Hash::make($validated['admin_password'] ?? 'password123'),
+                    'role'       => 'district_admin',
+                    'scope_id'   => $district->id,
+                    'scope_type' => District::class,
+                ]);
+            }
+        });
+
+        return redirect()->route('districts.index')->with('success', 'District and Administrator updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

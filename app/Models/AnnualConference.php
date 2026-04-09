@@ -54,4 +54,11 @@ class AnnualConference extends Model
             ->get()
             ->sum('members_count');
     }
+
+    /** The administrator(s) assigned to this conference */
+    public function admins()
+    {
+        return $this->morphMany(User::class, 'scope');
+    }
 }
+

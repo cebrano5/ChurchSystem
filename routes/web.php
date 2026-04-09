@@ -35,17 +35,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:national_admin|conference_admin|district_admin|society_admin')->group(function () {
         Route::resource('members', \App\Http\Controllers\MemberController::class)->except(['show']);
 
-        Route::get('/ministries', function () {
-            return Inertia::render('Ministries/Index', ['ministries' => \App\Models\Ministry::with(['leader', 'localSociety'])->get()]);
-        })->name('ministries.index');
+        Route::get('/ministries', [\App\Http\Controllers\MinistryController::class, 'index'])->name('ministries.index');
+        Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
 
-        Route::get('/events', function () {
-            return Inertia::render('Events/Index', ['events' => \App\Models\Event::withCount('attendance')->get()]);
-        })->name('events.index');
 
-        Route::get('/donations', function () {
-            return Inertia::render('Donations/Index', ['donations' => \App\Models\Donation::with('member')->get()]);
-        })->name('donations.index');
+        Route::resource('donations', \App\Http\Controllers\DonationController::class)->only(['index', 'store']);
+
     });
 
     // Profile (Standard Breeze)

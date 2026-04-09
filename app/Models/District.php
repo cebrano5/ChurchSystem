@@ -38,4 +38,11 @@ class District extends Model
             $this->localSocieties()->pluck('id')
         );
     }
+
+    /** The administrator(s) assigned to this district */
+    public function admins()
+    {
+        return $this->morphMany(User::class, 'scope');
+    }
 }
+

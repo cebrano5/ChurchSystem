@@ -47,6 +47,12 @@ class LocalSociety extends Model
         return $this->hasMany(Donation::class);
     }
 
+    /** The administrator(s) assigned to this local society */
+    public function admins()
+    {
+        return $this->morphMany(User::class, 'scope');
+    }
+
     /** Convenience: total donations for this society */
     public function getTotalDonationsAttribute(): float
     {

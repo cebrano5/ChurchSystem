@@ -42,7 +42,9 @@ export default function SocietiesIndex({ societies, flash }) {
                             <th className="p-4">Conference</th>
                             <th className="p-4">Contact</th>
                             <th className="p-4">Members</th>
+                            <th className="p-4">Primary Administrator</th>
                             {canManage && <th className="p-4 text-right">Actions</th>}
+
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
@@ -56,6 +58,17 @@ export default function SocietiesIndex({ societies, flash }) {
                                     <div className="text-xs text-slate-400 mt-0.5">{s.contact_phone}</div>
                                 </td>
                                 <td className="p-4 text-slate-600">{s.members_count}</td>
+                                <td className="p-4 text-slate-600">
+                                    {s.admins?.[0] ? (
+                                        <div>
+                                            <div className="font-semibold text-slate-700">{s.admins[0].name}</div>
+                                            <div className="text-xs text-slate-400">@{s.admins[0].username}</div>
+                                        </div>
+                                    ) : (
+                                        <span className="italic text-slate-400">Not Assigned</span>
+                                    )}
+                                </td>
+
                                 {canManage && (
                                     <td className="p-4 text-right space-x-3">
                                         <Link href={route('societies.edit', s.id)} className="text-[#c9a227] hover:text-yellow-600 font-medium">
