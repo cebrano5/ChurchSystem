@@ -36,9 +36,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('members', \App\Http\Controllers\MemberController::class)->except(['show']);
 
         Route::get('/ministries', [\App\Http\Controllers\MinistryController::class, 'index'])->name('ministries.index');
-        Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+        
+        // Admins can see list, view details (show), and create their own scoped events
+        Route::resource('events', \App\Http\Controllers\EventController::class)->only(['index', 'store', 'show']);
 
-
+        // Society Admins can store, all admins can view index.
         Route::resource('donations', \App\Http\Controllers\DonationController::class)->only(['index', 'store']);
 
     });

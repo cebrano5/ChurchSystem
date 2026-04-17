@@ -60,5 +60,11 @@ class AnnualConference extends Model
     {
         return $this->morphMany(User::class, 'scope');
     }
+
+    /** Events organized by this conference */
+    public function events()
+    {
+        return $this->morphMany(Event::class, 'organizer');
+    }
 }
 

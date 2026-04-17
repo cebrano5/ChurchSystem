@@ -44,5 +44,11 @@ class District extends Model
     {
         return $this->morphMany(User::class, 'scope');
     }
+
+    /** Events organized by this district */
+    public function events()
+    {
+        return $this->morphMany(Event::class, 'organizer');
+    }
 }
 

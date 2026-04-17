@@ -5,21 +5,31 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/** Event - a church activity organized by a local society */
+/**
+ * Event - a church activity organized by any tier (Society, District, Conference, National)
+ */
 class Event extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['local_society_id', 'name', 'event_date', 'location', 'description'];
+    // Fillable fields now include organizer (polymorphic relationship fields)
+    protected $fillable = ['organizer_id', 'organizer_type', 'name', 'event_date', 'location', 'description'];
 
     protected $casts = ['event_date' => 'date'];
 
-    public function localSociety()
+    /**
+     * Get the organizer of the event.
+     * This represents the level of hierarchy that created the event.
+     */
+    public function organizer()
     {
-        return $this->belongsTo(LocalSociety::class);
+        return $this->morphTo();
     }
 
-    /** Members who attended this event */
+    /** 
+     * Members who attended this event 
+     * Handles retrieving attendance records for deep querying
+     */
     public function members()
     {
         return $this->belongsToMany(Member::class, 'attendance')
@@ -27,12 +37,18 @@ class Event extends Model
                     ->withTimestamps();
     }
 
+    /**
+     * Relationships with attendance exactly
+     */
     public function attendance()
     {
         return $this->hasMany(Attendance::class);
     }
 
-    /** Count how many attended this event */
+    /** 
+     * Count how many attended this event 
+     * A helper to easily fetch attendance size for lists
+     */
     public function getAttendanceCountAttribute(): int
     {
         return $this->attendance()->count();

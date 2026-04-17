@@ -37,9 +37,10 @@ class LocalSociety extends Model
         return $this->hasMany(Ministry::class);
     }
 
+    /** Events organized by this local society */
     public function events()
     {
-        return $this->hasMany(Event::class);
+        return $this->morphMany(Event::class, 'organizer');
     }
 
     public function donations()
