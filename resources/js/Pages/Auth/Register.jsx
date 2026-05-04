@@ -1,7 +1,4 @@
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -15,7 +12,6 @@ export default function Register() {
 
     const submit = (e) => {
         e.preventDefault();
-
         post(route('register'), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
@@ -25,95 +21,65 @@ export default function Register() {
         <GuestLayout>
             <Head title="Register" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+            <div className="login-logo">✦</div>
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h1 style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: '1.5rem', fontWeight: '800',
+                    color: 'var(--text-primary)', marginBottom: '0.35rem',
+                }}>
+                    Create Account
+                </h1>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Join the Church Admin Portal
+                </p>
+            </div>
 
-                    <InputError message={errors.name} className="mt-2" />
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                <div className="form-group">
+                    <label htmlFor="name" className="form-label">Full Name</label>
+                    <input id="name" type="text" className="form-input" placeholder="John Doe"
+                        value={data.name} autoComplete="name" autoFocus
+                        onChange={(e) => setData('name', e.target.value)} required />
+                    <InputError message={errors.name} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
+                <div className="form-group">
+                    <label htmlFor="email" className="form-label">Email Address</label>
+                    <input id="email" type="email" className="form-input" placeholder="you@example.com"
+                        value={data.email} autoComplete="username"
+                        onChange={(e) => setData('email', e.target.value)} required />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
+                <div className="form-group">
+                    <label htmlFor="password" className="form-label">Password</label>
+                    <input id="password" type="password" className="form-input" placeholder="••••••••"
+                        value={data.password} autoComplete="new-password"
+                        onChange={(e) => setData('password', e.target.value)} required />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                <div className="form-group">
+                    <label htmlFor="password_confirmation" className="form-label">Confirm Password</label>
+                    <input id="password_confirmation" type="password" className="form-input" placeholder="••••••••"
+                        value={data.password_confirmation} autoComplete="new-password"
+                        onChange={(e) => setData('password_confirmation', e.target.value)} required />
+                    <InputError message={errors.password_confirmation} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
+                <button type="submit" className="btn-primary" disabled={processing}
+                    style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.875rem' }}>
+                    {processing ? 'Creating account…' : 'Create Account'}
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    Already have an account?{' '}
+                    <Link href={route('login')} style={{ color: 'var(--gold-light)', fontWeight: 600, textDecoration: 'none' }}>
+                        Sign in
                     </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
+                </p>
             </form>
         </GuestLayout>
     );

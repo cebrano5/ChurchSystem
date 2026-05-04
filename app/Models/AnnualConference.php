@@ -16,7 +16,10 @@ class AnnualConference extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'region', 'description', 'established_at'];
+    protected $fillable = [
+        'name', 'region', 'description', 'established_at',
+        'latitude', 'longitude', 'location_name',
+    ];
 
     protected $casts = [
         'established_at' => 'date',

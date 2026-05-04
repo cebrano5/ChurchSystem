@@ -14,7 +14,14 @@ class District extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['annual_conference_id', 'name', 'description'];
+    protected $fillable = [
+        'annual_conference_id',
+        'name',
+        'description',
+        'latitude',
+        'longitude',
+        'location_name',
+    ];
 
     // ─── Relationships ────────────────────────────────────────────────────────
 

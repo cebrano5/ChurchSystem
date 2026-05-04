@@ -36,6 +36,29 @@ class AnnualConferenceController extends Controller
     }
 
     /**
+     * Display the specified conference's detail view.
+     */
+    public function show(Request $request, AnnualConference $conference)
+    {
+        $user = $request->user();
+        if (!$user->isNationalAdmin()) abort(403);
+
+        $conference->load(['admins']);
+        $societyIds = $conference->localSocieties()->pluck('local_societies.id')->toArray();
+
+        return Inertia::render('Conferences/Show', [
+            'conference'     => $conference,
+            'admin'          => $conference->admins->first(),
+            'districtCount'  => $conference->districts()->count(),
+            'societyCount'   => count($societyIds),
+            'memberCount'    => $conference->members()->count(),
+            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+            'districts'      => $conference->districts()->withCount('localSocieties')->orderBy('name')->get(),
+            'recentMembers'  => $conference->members()->orderBy('members.created_at', 'desc')->take(6)->get(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create(Request $request)
@@ -63,6 +86,9 @@ class AnnualConferenceController extends Controller
             'region'         => 'required|string|max:255',
             'description'    => 'nullable|string',
             'established_at' => 'required|date',
+            'latitude'       => 'nullable|numeric|between:-90,90',
+            'longitude'      => 'nullable|numeric|between:-180,180',
+            'location_name'  => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'     => 'required|string|max:255',
             'admin_username' => 'required|string|max:255|unique:users,username',
@@ -75,6 +101,9 @@ class AnnualConferenceController extends Controller
                 'region'         => $validated['region'],
                 'description'    => $validated['description'],
                 'established_at' => $validated['established_at'],
+                'latitude'       => $validated['latitude'] ?? null,
+                'longitude'      => $validated['longitude'] ?? null,
+                'location_name'  => $validated['location_name'] ?? null,
             ]);
 
             User::create([
@@ -125,6 +154,9 @@ class AnnualConferenceController extends Controller
             'region'         => 'required|string|max:255',
             'description'    => 'nullable|string',
             'established_at' => 'required|date',
+            'latitude'       => 'nullable|numeric|between:-90,90',
+            'longitude'      => 'nullable|numeric|between:-180,180',
+            'location_name'  => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'     => 'required|string|max:255',
             'admin_username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
@@ -137,6 +169,9 @@ class AnnualConferenceController extends Controller
                 'region'         => $validated['region'],
                 'description'    => $validated['description'],
                 'established_at' => $validated['established_at'],
+                'latitude'       => $validated['latitude'] ?? null,
+                'longitude'      => $validated['longitude'] ?? null,
+                'location_name'  => $validated['location_name'] ?? null,
             ]);
 
             if ($admin) {

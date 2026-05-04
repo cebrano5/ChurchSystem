@@ -19,10 +19,10 @@ export default function Modal({
     };
 
     const maxWidthClass = {
-        sm: 'sm:max-w-sm',
-        md: 'sm:max-w-md',
-        lg: 'sm:max-w-lg',
-        xl: 'sm:max-w-xl',
+        sm:  'sm:max-w-sm',
+        md:  'sm:max-w-md',
+        lg:  'sm:max-w-lg',
+        xl:  'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
     }[maxWidth];
 
@@ -34,6 +34,7 @@ export default function Modal({
                 className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
                 onClose={close}
             >
+                {/* Backdrop */}
                 <TransitionChild
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
@@ -42,9 +43,10 @@ export default function Modal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-gray-500/75" />
+                    <div className="absolute inset-0" style={{ background: 'rgba(5,12,24,0.75)', backdropFilter: 'blur(4px)' }} />
                 </TransitionChild>
 
+                {/* Panel */}
                 <TransitionChild
                     enter="ease-out duration-300"
                     enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -54,7 +56,12 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`mb-6 transform overflow-hidden shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        style={{
+                            background: 'var(--navy-card)',
+                            border: '1px solid var(--navy-border)',
+                            borderRadius: '20px',
+                        }}
                     >
                         {children}
                     </DialogPanel>

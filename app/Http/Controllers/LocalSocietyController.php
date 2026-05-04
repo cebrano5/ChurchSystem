@@ -40,6 +40,53 @@ class LocalSocietyController extends Controller
     }
 
     /**
+     * Display the specified local society's detail view.
+     */
+    public function show(Request $request, LocalSociety $society)
+    {
+        $user = $request->user();
+
+        // Scope checks
+        if ($user->isConferenceAdmin()) {
+            $district = District::findOrFail($society->district_id);
+            if ($district->annual_conference_id != $user->scope_id) abort(403);
+        } elseif ($user->isDistrictAdmin()) {
+            if ($society->district_id != $user->scope_id) abort(403);
+        } elseif (!$user->isNationalAdmin()) {
+            abort(403);
+        }
+
+        $society->load([
+            'district.annualConference',
+            'admins',
+        ]);
+
+        return Inertia::render('Societies/Show', [
+            'society'       => $society,
+            'admin'         => $society->admins->first(),
+            'memberCount'   => $society->members()->count(),
+            'ministryCount' => $society->ministries()->count(),
+            'totalDonations'=> $society->donations()->sum('amount'),
+            'upcomingEvents'=> $society->events()
+                                ->where('event_date', '>=', now())
+                                ->orderBy('event_date')
+                                ->get()
+                                ->unique(function ($item) {
+                                    return $item->series_id ?? 'standalone_' . $item->id;
+                                })
+                                ->values()
+                                ->take(5),
+            'recentMembers' => $society->members()
+                                ->orderBy('created_at', 'desc')
+                                ->get(),
+            'recentDonations'=> $society->donations()
+                                ->orderBy('created_at', 'desc')
+                                ->take(5)
+                                ->get(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create(Request $request)
@@ -82,9 +129,12 @@ class LocalSocietyController extends Controller
         $validated = $request->validate([
             'district_id'    => ['required', 'integer', Rule::in($validDistrictIds)],
             'name'           => 'required|string|max:255',
-            'address'        => 'required|string',
+            'address'        => 'nullable|string',
             'contact_person' => 'required|string|max:255',
             'contact_phone'  => 'required|string|max:255',
+            'latitude'       => 'nullable|numeric|between:-90,90',
+            'longitude'      => 'nullable|numeric|between:-180,180',
+            'location_name'  => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'     => 'required|string|max:255',
             'admin_username' => 'required|string|max:255|unique:users,username',
@@ -95,9 +145,12 @@ class LocalSocietyController extends Controller
             $society = LocalSociety::create([
                 'district_id'    => $validated['district_id'],
                 'name'           => $validated['name'],
-                'address'        => $validated['address'],
+                'address'        => $validated['address'] ?? null,
                 'contact_person' => $validated['contact_person'],
                 'contact_phone'  => $validated['contact_phone'],
+                'latitude'       => $validated['latitude'] ?? null,
+                'longitude'      => $validated['longitude'] ?? null,
+                'location_name'  => $validated['location_name'] ?? null,
             ]);
 
             User::create([
@@ -123,9 +176,9 @@ class LocalSocietyController extends Controller
         // Validate view permission
         if ($user->isConferenceAdmin()) {
             $district = District::findOrFail($society->district_id);
-            if ($district->annual_conference_id !== $user->scope_id) abort(403);
+            if ($district->annual_conference_id != $user->scope_id) abort(403);
         } elseif ($user->isDistrictAdmin()) {
-            if ($society->district_id !== $user->scope_id) abort(403);
+            if ($society->district_id != $user->scope_id) abort(403);
         } elseif (!$user->isNationalAdmin()) {
             abort(403);
         }
@@ -157,9 +210,9 @@ class LocalSocietyController extends Controller
         // Validate view permission
         if ($user->isConferenceAdmin()) {
             $district = District::findOrFail($society->district_id);
-            if ($district->annual_conference_id !== $user->scope_id) abort(403);
+            if ($district->annual_conference_id != $user->scope_id) abort(403);
         } elseif ($user->isDistrictAdmin()) {
-            if ($society->district_id !== $user->scope_id) abort(403);
+            if ($society->district_id != $user->scope_id) abort(403);
         } elseif (!$user->isNationalAdmin()) {
             abort(403);
         }
@@ -178,9 +231,12 @@ class LocalSocietyController extends Controller
         $validated = $request->validate([
             'district_id'    => ['required', 'integer', Rule::in($validDistrictIds)],
             'name'           => 'required|string|max:255',
-            'address'        => 'required|string',
+            'address'        => 'nullable|string',
             'contact_person' => 'required|string|max:255',
             'contact_phone'  => 'required|string|max:255',
+            'latitude'       => 'nullable|numeric|between:-90,90',
+            'longitude'      => 'nullable|numeric|between:-180,180',
+            'location_name'  => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'     => 'required|string|max:255',
             'admin_username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
@@ -191,9 +247,12 @@ class LocalSocietyController extends Controller
             $society->update([
                 'district_id'    => $validated['district_id'],
                 'name'           => $validated['name'],
-                'address'        => $validated['address'],
+                'address'        => $validated['address'] ?? null,
                 'contact_person' => $validated['contact_person'],
                 'contact_phone'  => $validated['contact_phone'],
+                'latitude'       => $validated['latitude'] ?? null,
+                'longitude'      => $validated['longitude'] ?? null,
+                'location_name'  => $validated['location_name'] ?? null,
             ]);
 
             if ($admin) {
@@ -231,9 +290,9 @@ class LocalSocietyController extends Controller
         // Validate deletion permission
         if ($user->isConferenceAdmin()) {
             $district = District::findOrFail($society->district_id);
-            if ($district->annual_conference_id !== $user->scope_id) abort(403);
+            if ($district->annual_conference_id != $user->scope_id) abort(403);
         } elseif ($user->isDistrictAdmin()) {
-            if ($society->district_id !== $user->scope_id) abort(403);
+            if ($society->district_id != $user->scope_id) abort(403);
         } elseif (!$user->isNationalAdmin()) {
             abort(403);
         }

@@ -33,8 +33,11 @@ class User extends Authenticatable
         'username',
         'password',
         'role',
-        'scope_id',
         'scope_type',
+        'scope_id',
+        'latitude', 
+        'longitude',
+        'location_name',
     ];
 
     /**

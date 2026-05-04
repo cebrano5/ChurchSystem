@@ -1,113 +1,118 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { PlusIcon, PencilSquareIcon, TrashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import ConfirmModal from '@/Components/ConfirmModal';
 
-
-export default function MembersIndex({ members, canManage, flash }) {
+export default function MembersIndex({ members, canManage }) {
     const { delete: destroy } = useForm();
-
-    const handleDelete = (id) => {
-        if (confirm('Are you sure you want to remove this member? This action cannot be undone.')) {
-            destroy(route('members.destroy', id));
-        }
-    };
+    const [confirm, setConfirm] = useState(null); // { id, name }
 
     const memberData = members?.data || [];
     const links = members?.links || [];
+
+    const handleDelete = () => {
+        destroy(route('members.destroy', confirm.id));
+        setConfirm(null);
+    };
 
     return (
         <AuthenticatedLayout header="Members Directory">
             <Head title="Members" />
 
-            {flash?.success && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-                    {flash.success}
-                </div>
-            )}
+            <ConfirmModal
+                show={!!confirm}
+                title="Remove Member?"
+                message={`Are you sure you want to remove ${confirm?.name ?? 'this member'}? This action cannot be undone.`}
+                confirmLabel="Remove Member"
+                onConfirm={handleDelete}
+                onCancel={() => setConfirm(null)}
+            />
 
-            {canManage && (
-                <div className="flex justify-end mb-6">
-                    <Link
-                        href={route('members.create')}
-                        className="bg-[#1e3a5f] hover:bg-[#2a4d7a] text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors"
-                    >
-                        + Add Member
+            <div className="section-header">
+                <div>
+                    <div className="section-title">All Members</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                        {members?.total ?? memberData.length} total records
+                    </div>
+                </div>
+                {canManage && (
+                    <Link href={route('members.create')} className="btn-primary">
+                        <PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} />
+                        Add Member
                     </Link>
-                </div>
-            )}
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100 uppercase text-xs font-semibold text-slate-500 tracking-wider">
-                            <th className="p-4">Name</th>
-                            <th className="p-4">Conference</th>
-                            <th className="p-4">District</th>
-                            <th className="p-4">Society</th>
-                            <th className="p-4">Status</th>
-
-                            {canManage && <th className="p-4 text-right">Actions</th>}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
-                        {memberData.map((member) => (
-                            <tr key={member.id} className="hover:bg-slate-50 transition">
-                                <td className="p-4 font-medium text-slate-800">
-                                    {member.first_name} {member.last_name}
-                                </td>
-                                <td className="p-4 text-slate-600">{member.local_society?.district?.annual_conference?.name || 'N/A'}</td>
-                                <td className="p-4 text-slate-600">{member.local_society?.district?.name || 'N/A'}</td>
-                                <td className="p-4 text-slate-600">{member.local_society?.name || 'N/A'}</td>
-                                <td className="p-4">
-
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                        member.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
-                                    }`}>
-                                        {member.status}
-                                    </span>
-                                </td>
-                                {canManage && (
-                                    <td className="p-4 text-right space-x-3">
-                                        <Link
-                                            href={route('members.edit', member.id)}
-                                            className="text-[#c9a227] hover:text-yellow-600 font-medium"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(member.id)}
-                                            className="text-red-500 hover:text-red-700 font-medium"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {memberData.length === 0 && (
-                    <div className="p-8 text-center text-slate-500">No members found.</div>
                 )}
             </div>
-            
-            {/* Simple Pagination */}
+
+            <div className="card">
+                {memberData.length === 0 ? (
+                    <div className="empty-state">
+                        <UserGroupIcon className="empty-state-icon" style={{ width: '3rem', height: '3rem' }} />
+                        <div className="empty-state-text">No members found.</div>
+                    </div>
+                ) : (
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Conference</th>
+                                <th>District</th>
+                                <th>Society</th>
+                                <th>Status</th>
+                                {canManage && <th style={{ textAlign: 'right' }}>Actions</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {memberData.map((member) => (
+                                <tr key={member.id}>
+                                    <td className="primary-cell">
+                                        {member.first_name} {member.last_name}
+                                    </td>
+                                    <td>{member.local_society?.district?.annual_conference?.name || '—'}</td>
+                                    <td>{member.local_society?.district?.name || '—'}</td>
+                                    <td>{member.local_society?.name || '—'}</td>
+                                    <td>
+                                        <span className={`badge ${member.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
+                                            {member.status}
+                                        </span>
+                                    </td>
+                                    {canManage && (
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                                                <Link
+                                                    href={route('members.edit', member.id)}
+                                                    className="btn-icon"
+                                                    style={{ color: 'var(--gold-light)', background: 'rgba(212,160,23,0.08)', border: '1px solid rgba(212,160,23,0.2)' }}
+                                                >
+                                                    <PencilSquareIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Edit
+                                                </Link>
+                                                <button
+                                                    onClick={() => setConfirm({ id: member.id, name: `${member.first_name} ${member.last_name}` })}
+                                                    className="btn-icon"
+                                                    style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+                                                >
+                                                    <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
             {links.length > 3 && (
-                <div className="mt-6 flex justify-center space-x-1">
-                    {links.map((link, i) => {
-                        const isPrevNext = link.label.includes('&laquo;') || link.label.includes('&raquo;');
-                        return (
-                            <Link
-                                key={i}
-                                href={link.url || '#'}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                className={`px-3 py-1 rounded ${link.active ? 'bg-[#1e3a5f] text-white' : 'bg-white text-slate-600 border border-slate-200'} ${!link.url && 'opacity-50 cursor-not-allowed'}`}
-                                onClick={(e) => { if (!link.url) e.preventDefault(); }}
-                            />
-                        );
-                    })}
+                <div className="pagination">
+                    {links.map((link, i) => (
+                        <Link key={i} href={link.url || '#'}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                            className={`page-btn ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
+                            onClick={(e) => { if (!link.url) e.preventDefault(); }} />
+                    ))}
                 </div>
             )}
         </AuthenticatedLayout>
     );
 }
-

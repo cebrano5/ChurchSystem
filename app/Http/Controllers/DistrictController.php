@@ -37,6 +37,47 @@ class DistrictController extends Controller
     }
 
     /**
+     * Display the specified district's detail view.
+     */
+    public function show(Request $request, District $district)
+    {
+        $user = $request->user();
+
+        if ($user->isConferenceAdmin() && $district->annual_conference_id != $user->scope_id) {
+            abort(403);
+        } elseif (!$user->isNationalAdmin() && !$user->isConferenceAdmin()) {
+            abort(403);
+        }
+
+        $district->load(['annualConference', 'admins']);
+        $societyIds = $district->localSocieties()->pluck('id')->toArray();
+
+        $upcomingEvents = \App\Models\Event::where(function($q) use ($district, $societyIds) {
+            $q->where('organizer_type', District::class)->where('organizer_id', $district->id)
+              ->orWhere(function($sq) use ($societyIds) {
+                  $sq->where('organizer_type', LocalSociety::class)->whereIn('organizer_id', $societyIds);
+              });
+        })
+        ->where('event_date', '>=', now())
+        ->orderBy('event_date')
+        ->get()
+        ->unique(fn($e) => $e->series_id ?? 'standalone_' . $e->id)
+        ->values()
+        ->take(5);
+
+        return Inertia::render('Districts/Show', [
+            'district'       => $district,
+            'admin'          => $district->admins->first(),
+            'societyCount'   => $district->localSocieties()->count(),
+            'memberCount'    => $district->members()->count(),
+            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+            'upcomingEvents' => $upcomingEvents,
+            'societies'      => $district->localSocieties()->withCount('members')->orderBy('name')->get(),
+            'recentMembers'  => $district->members()->orderBy('created_at', 'desc')->take(6)->get(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create(Request $request)
@@ -74,6 +115,9 @@ class DistrictController extends Controller
             'annual_conference_id' => $conferenceValidation,
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'latitude'             => 'nullable|numeric|between:-90,90',
+            'longitude'            => 'nullable|numeric|between:-180,180',
+            'location_name'        => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'           => 'required|string|max:255',
             'admin_username'       => 'required|string|max:255|unique:users,username',
@@ -85,6 +129,9 @@ class DistrictController extends Controller
                 'annual_conference_id' => $validated['annual_conference_id'],
                 'name'                 => $validated['name'],
                 'description'          => $validated['description'],
+                'latitude'             => $validated['latitude'] ?? null,
+                'longitude'            => $validated['longitude'] ?? null,
+                'location_name'        => $validated['location_name'] ?? null,
             ]);
 
             User::create([
@@ -107,7 +154,7 @@ class DistrictController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isConferenceAdmin() && $district->annual_conference_id !== $user->scope_id) {
+        if ($user->isConferenceAdmin() && $district->annual_conference_id != $user->scope_id) {
             abort(403);
         } elseif (!$user->isNationalAdmin() && !$user->isConferenceAdmin()) {
             abort(403);
@@ -135,7 +182,7 @@ class DistrictController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isConferenceAdmin() && $district->annual_conference_id !== $user->scope_id) {
+        if ($user->isConferenceAdmin() && $district->annual_conference_id != $user->scope_id) {
             abort(403);
         } elseif (!$user->isNationalAdmin() && !$user->isConferenceAdmin()) {
             abort(403);
@@ -152,6 +199,9 @@ class DistrictController extends Controller
             'annual_conference_id' => $conferenceValidation,
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'latitude'             => 'nullable|numeric|between:-90,90',
+            'longitude'            => 'nullable|numeric|between:-180,180',
+            'location_name'        => 'nullable|string|max:500',
             // Admin Credentials
             'admin_name'           => 'required|string|max:255',
             'admin_username'       => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($admin?->id)],
@@ -163,6 +213,9 @@ class DistrictController extends Controller
                 'annual_conference_id' => $validated['annual_conference_id'],
                 'name'                 => $validated['name'],
                 'description'          => $validated['description'],
+                'latitude'             => $validated['latitude'] ?? null,
+                'longitude'            => $validated['longitude'] ?? null,
+                'location_name'        => $validated['location_name'] ?? null,
             ]);
 
             if ($admin) {
@@ -197,7 +250,7 @@ class DistrictController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isConferenceAdmin() && $district->annual_conference_id !== $user->scope_id) {
+        if ($user->isConferenceAdmin() && $district->annual_conference_id != $user->scope_id) {
             abort(403);
         } elseif (!$user->isNationalAdmin() && !$user->isConferenceAdmin()) {
             abort(403);

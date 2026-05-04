@@ -13,9 +13,19 @@ class Event extends Model
     use HasFactory;
 
     // Fillable fields now include organizer (polymorphic relationship fields)
-    protected $fillable = ['organizer_id', 'organizer_type', 'name', 'event_date', 'location', 'description'];
+    protected $fillable = [
+        'organizer_id', 'organizer_type', 'series_id', 'name', 'event_date', 'end_date', 'location', 'description',
+        'is_recurring', 'recurrence_frequency', 'recurrence_end_date'
+    ];
+ 
+    protected $casts = [
+        'event_date' => 'datetime',
+        'end_date' => 'datetime',
+        'recurrence_end_date' => 'date',
+        'is_recurring' => 'boolean'
+    ];
 
-    protected $casts = ['event_date' => 'date'];
+    protected $appends = ['attendance_count'];
 
     /**
      * Get the organizer of the event.

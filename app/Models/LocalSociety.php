@@ -18,6 +18,7 @@ class LocalSociety extends Model
     protected $fillable = [
         'district_id', 'name', 'address',
         'contact_person', 'contact_phone', 'description',
+        'latitude', 'longitude', 'location_name',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────

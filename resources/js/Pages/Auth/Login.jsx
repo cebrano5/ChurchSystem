@@ -1,10 +1,6 @@
-import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -15,7 +11,6 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -23,68 +18,85 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Sign In" />
+
+            {/* Logo */}
+            <div className="login-logo">✦</div>
+
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h1 style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: '1.5rem',
+                    fontWeight: '800',
+                    color: 'var(--text-primary)',
+                    marginBottom: '0.35rem',
+                }}>
+                    Welcome back
+                </h1>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Sign in to the Church Admin Portal
+                </p>
+            </div>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div className="alert-success" style={{ marginBottom: '1.5rem' }}>
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="username" value="Username" />
-
-                    <TextInput
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="form-group">
+                    <label htmlFor="username" className="form-label">Username</label>
+                    <input
                         id="username"
                         type="text"
                         name="username"
+                        className="form-input"
+                        placeholder="Enter your username"
                         value={data.username}
-                        className="mt-1 block w-full"
                         autoComplete="username"
-                        isFocused={true}
+                        autoFocus
                         onChange={(e) => setData('username', e.target.value)}
                     />
-
-                    <InputError message={errors.username} className="mt-2" />
+                    <InputError message={errors.username} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                <div className="form-group">
+                    <label htmlFor="password" className="form-label">Password</label>
+                    <input
                         id="password"
                         type="password"
                         name="password"
+                        className="form-input"
+                        placeholder="••••••••"
                         value={data.password}
-                        className="mt-1 block w-full"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="mt-4 block">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
-                        />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                    <input
+                        type="checkbox"
+                        className="form-checkbox"
+                        name="remember"
+                        checked={data.remember}
+                        onChange={(e) => setData('remember', e.target.checked)}
+                    />
+                    <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                        Remember me
+                    </span>
+                </label>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
-                </div>
+                <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={processing}
+                    style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.875rem' }}
+                >
+                    {processing ? 'Signing in…' : 'Sign In'}
+                </button>
             </form>
         </GuestLayout>
     );

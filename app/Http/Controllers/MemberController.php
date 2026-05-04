@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Ministry;
+use App\Models\LocalSociety;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
@@ -39,15 +40,15 @@ class MemberController extends Controller
     public function create(Request $request)
     {
         $user = $request->user();
-        if (!$user->isSocietyAdmin()) {
-            abort(403, 'Only Society Admins can add new members.');
-        }
+        $societyIds = $user->getAccessibleSocietyIds();
+        $societies = LocalSociety::whereIn('id', $societyIds)->get();
 
-        // Fetch ministries strictly within this society 
-        $ministries = Ministry::where('local_society_id', $user->scope_id)->get();
+        // Fetch all global ministries for the catalog
+        $ministries = Ministry::orderBy('name')->get();
 
         return Inertia::render('Members/Form', [
             'ministries' => $ministries,
+            'societies'  => $societies,
         ]);
     }
 
@@ -57,34 +58,21 @@ class MemberController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
-        if (!$user->isSocietyAdmin()) {
-            abort(403);
-        }
-
+        
         $validated = $request->validate([
+            'local_society_id' => 'required|exists:local_societies,id',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'status' => 'required|in:Active,Inactive',
-            'ministry_ids' => 'array',
-            'ministry_ids.*' => [
-                'integer',
-                Rule::exists('ministries', 'id')->where('local_society_id', $user->scope_id)
-            ]
+            'ministry_id' => 'nullable|integer|exists:ministries,id'
         ]);
 
-        $member = Member::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'status' => $validated['status'],
-            'local_society_id' => $user->scope_id,
-        ]);
+        $member = Member::create($validated);
 
-        if (!empty($validated['ministry_ids'])) {
-            $member->ministries()->attach($validated['ministry_ids']);
+        if ($validated['ministry_id']) {
+            $member->ministries()->sync([$validated['ministry_id']]);
         }
 
         return redirect()->route('members.index')->with('success', 'Member created and assigned successfully.');
@@ -96,17 +84,20 @@ class MemberController extends Controller
     public function edit(Request $request, Member $member)
     {
         $user = $request->user();
-        if (!$user->isSocietyAdmin() || $member->local_society_id !== $user->scope_id) {
+        $societyIds = $user->getAccessibleSocietyIds();
+
+        if (!in_array($member->local_society_id, $societyIds)) {
             abort(403);
         }
 
-        $ministries = Ministry::where('local_society_id', $user->scope_id)->get();
-        // Load existing ministry attachments
+        $ministries = Ministry::orderBy('name')->get();
+        $societies = LocalSociety::whereIn('id', $societyIds)->get();
         $member->load('ministries');
 
         return Inertia::render('Members/Form', [
             'member' => $member,
             'ministries' => $ministries,
+            'societies'  => $societies,
         ]);
     }
 
@@ -116,33 +107,26 @@ class MemberController extends Controller
     public function update(Request $request, Member $member)
     {
         $user = $request->user();
-        if (!$user->isSocietyAdmin() || $member->local_society_id !== $user->scope_id) {
+        $societyIds = $user->getAccessibleSocietyIds();
+
+        if (!in_array($member->local_society_id, $societyIds)) {
             abort(403);
         }
 
         $validated = $request->validate([
+            'local_society_id' => 'required|exists:local_societies,id',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'status' => 'required|in:Active,Inactive',
-            'ministry_ids' => 'array',
-            'ministry_ids.*' => [
-                'integer',
-                Rule::exists('ministries', 'id')->where('local_society_id', $user->scope_id)
-            ]
+            'ministry_id' => 'nullable|integer|exists:ministries,id'
         ]);
 
-        $member->update([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'status' => $validated['status'],
-        ]);
+        $member->update($validated);
 
-        if (isset($validated['ministry_ids'])) {
-            $member->ministries()->sync($validated['ministry_ids']);
+        if (array_key_exists('ministry_id', $validated)) {
+            $member->ministries()->sync($validated['ministry_id'] ? [$validated['ministry_id']] : []);
         }
 
         return redirect()->route('members.index')->with('success', 'Member updated successfully.');
@@ -154,7 +138,7 @@ class MemberController extends Controller
     public function destroy(Request $request, Member $member)
     {
         $user = $request->user();
-        if (!$user->isSocietyAdmin() || $member->local_society_id !== $user->scope_id) {
+        if (!in_array($member->local_society_id, $user->getAccessibleSocietyIds())) {
             abort(403);
         }
 

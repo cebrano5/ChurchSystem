@@ -22,4 +22,11 @@ class Ministry extends Model
     {
         return $this->belongsTo(Member::class, 'leader_id');
     }
+
+    /** Members belonging to this ministry */
+    public function members()
+    {
+        return $this->belongsToMany(Member::class, 'member_ministry')
+                    ->withTimestamps();
+    }
 }
