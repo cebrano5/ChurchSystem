@@ -1,6 +1,6 @@
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage, Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+
 import InputError from '@/Components/InputError';
 import {
     UserIcon, KeyIcon, ShieldCheckIcon,
