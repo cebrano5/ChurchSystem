@@ -406,20 +406,21 @@ export default function ChurchMap({ national = [], conferences = [], districts =
                             width: '380px', 
                             display: 'flex', 
                             flexDirection: 'column', 
-                            gap: '2.5rem', 
-                            padding: '2rem',
+                            gap: '1.5rem', 
+                            padding: '1.5rem',
                             border: '1px solid var(--navy-border)',
                             background: 'rgba(28, 50, 84, 0.4)',
-                            backdropFilter: 'blur(10px)'
+                            backdropFilter: 'blur(10px)',
+                            overflowY: 'auto'
                         }}>
                             <div>
-                                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--gold)', marginBottom: '0.75rem', letterSpacing: '-0.02em' }}>Location Editor</h3>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--gold)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Location Editor</h3>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                                     Assign or refine geographical coordinates for any entity by clicking the map.
                                 </p>
                             </div>
 
-                            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
+                            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
                                 <div className="form-group" style={{ gap: '0.75rem' }}>
                                     <label className="form-label" style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         1. Set Geographical Location
@@ -507,13 +508,13 @@ export default function ChurchMap({ national = [], conferences = [], districts =
                                         <option value="">— Select Target —</option>
                                         {getOptions().map(opt => (
                                             <option key={opt.id} value={opt.id}>
-                                                {opt.name} {opt.latitude ? '✓' : '○'}
+                                                {opt.latitude ? '✓ ' : '— '}{opt.name}
                                             </option>
                                         ))}
                                     </select>
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', padding: '0 0.25rem' }}>
-                                        <span><span style={{color: 'var(--gold)'}}>✓</span> Mapped</span>
-                                        <span><span style={{opacity: 0.5}}>○</span> Unmapped</span>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', padding: '0 0.25rem' }}>
+                                        <span><span style={{color: 'var(--gold)', fontWeight: 'bold'}}>✓</span> Mapped</span>
+                                        <span><span style={{opacity: 0.7}}>—</span> Unmapped</span>
                                     </div>
                                 </div>
 
