@@ -55,7 +55,7 @@ trait Trackable
                 'auditable_type' => get_class($model),
                 'auditable_id' => $model->id,
                 'description' => $description,
-                'ip_address' => request()->ip(),
+                'ip_address' => optional(request())->ip(),
             ]);
         }
     }

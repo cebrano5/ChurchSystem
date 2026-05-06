@@ -1,0 +1,1 @@
+import{j as e}from"./app-Bo2C_omR.js";function a({className:n="",disabled:t,children:r,...o}){return e.jsx("button",{...o,className:`btn-primary ${t?"opacity-50 cursor-not-allowed":""} ${n}`,disabled:t,style:{pointerEvents:t?"none":void 0,...o.style},children:r})}export{a as P};

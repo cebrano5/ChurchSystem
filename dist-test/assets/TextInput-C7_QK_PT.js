@@ -1,0 +1,1 @@
+import{r as t,j as o}from"./app-Bo2C_omR.js";const p=t.forwardRef(function({type:s="text",className:f="",isFocused:r=!1,...u},n){const e=t.useRef(null);return t.useImperativeHandle(n,()=>({focus:()=>e.current?.focus()})),t.useEffect(()=>{r&&e.current?.focus()},[r]),o.jsx("input",{...u,type:s,className:`form-input ${f}`,ref:e})});export{p as T};
