@@ -10,7 +10,7 @@ export default function DistrictsIndex({ districts }) {
     const canManage = ['national_admin', 'conference_admin'].includes(user.role);
     const [confirm, setConfirm] = useState(null);
 
-    const handleDelete = () => {
+    const handleArchive = () => {
         destroy(route('districts.destroy', confirm.id));
         setConfirm(null);
     };
@@ -21,10 +21,10 @@ export default function DistrictsIndex({ districts }) {
 
             <ConfirmModal
                 show={!!confirm}
-                title="Delete District?"
-                message={`Deleting "${confirm?.name}" will permanently remove all subordinate societies. This cannot be undone.`}
-                confirmLabel="Delete District"
-                onConfirm={handleDelete}
+                title="Archive District?"
+                message={`Are you sure you want to archive "${confirm?.name}"? All subordinate societies will also be archived. You can restore them later.`}
+                confirmLabel="Archive District"
+                onConfirm={handleArchive}
                 onCancel={() => setConfirm(null)}
             />
 
@@ -93,7 +93,7 @@ export default function DistrictsIndex({ districts }) {
                                                 </Link>
                                                 <button onClick={(e) => { e.stopPropagation(); setConfirm({ id: d.id, name: d.name }); }} className="btn-icon"
                                                     style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                                    <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Delete
+                                                    <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Archive
                                                 </button>
                                             </div>
                                         </td>

@@ -8,7 +8,7 @@ export default function ConferencesIndex({ conferences }) {
     const { delete: destroy } = useForm();
     const [confirm, setConfirm] = useState(null);
 
-    const handleDelete = () => {
+    const handleArchive = () => {
         destroy(route('conferences.destroy', confirm.id));
         setConfirm(null);
     };
@@ -19,10 +19,10 @@ export default function ConferencesIndex({ conferences }) {
 
             <ConfirmModal
                 show={!!confirm}
-                title="Delete Annual Conference?"
-                message={`Deleting "${confirm?.name}" will permanently remove all subordinate districts and societies. This cannot be undone.`}
-                confirmLabel="Delete Conference"
-                onConfirm={handleDelete}
+                title="Archive Annual Conference?"
+                message={`Are you sure you want to archive "${confirm?.name}"? All subordinate districts and societies will also be archived. You can restore them later.`}
+                confirmLabel="Archive Conference"
+                onConfirm={handleArchive}
                 onCancel={() => setConfirm(null)}
             />
 
@@ -88,7 +88,7 @@ export default function ConferencesIndex({ conferences }) {
                                             </Link>
                                             <button onClick={(e) => { e.stopPropagation(); setConfirm({ id: c.id, name: c.name }); }} className="btn-icon"
                                                 style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                                <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Delete
+                                                <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Archive
                                             </button>
                                         </div>
                                     </td>
