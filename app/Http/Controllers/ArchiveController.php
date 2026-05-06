@@ -60,10 +60,52 @@ class ArchiveController extends Controller
         // All Admins (including Society Admins) see core entities within their accessible societies
         $accessibleSocietyIds = $user->getAccessibleSocietyIds();
         
-        $archives['pastors'] = Pastor::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        // Pastors use polymorphic scoping (scope_type and scope_id)
+        $pastorsQuery = Pastor::onlyTrashed();
+        if ($user->isNationalAdmin()) {
+            // National admin sees all pastors
+        } elseif ($user->isConferenceAdmin()) {
+            $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
+            $pastorsQuery->where(function($q) use ($user, $districtIds, $accessibleSocietyIds) {
+                $q->where('scope_type', AnnualConference::class)->where('scope_id', $user->scope_id)
+                  ->orWhere('scope_type', District::class)->whereIn('scope_id', $districtIds)
+                  ->orWhere('scope_type', LocalSociety::class)->whereIn('scope_id', $accessibleSocietyIds);
+            });
+        } elseif ($user->isDistrictAdmin()) {
+            $pastorsQuery->where(function($q) use ($user, $accessibleSocietyIds) {
+                $q->where('scope_type', District::class)->where('scope_id', $user->scope_id)
+                  ->orWhere('scope_type', LocalSociety::class)->whereIn('scope_id', $accessibleSocietyIds);
+            });
+        } else {
+            // Society Admin
+            $pastorsQuery->where('scope_type', LocalSociety::class)->whereIn('scope_id', $accessibleSocietyIds);
+        }
+        $archives['pastors'] = $pastorsQuery->get();
+
         $archives['members'] = Member::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
         $archives['ministries'] = Ministry::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
-        $archives['events'] = Event::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        
+        // Events use polymorphic scoping (organizer_type and organizer_id)
+        $eventsQuery = Event::onlyTrashed();
+        if ($user->isNationalAdmin()) {
+            // National admin sees all events
+        } elseif ($user->isConferenceAdmin()) {
+            $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
+            $eventsQuery->where(function($q) use ($user, $districtIds, $accessibleSocietyIds) {
+                $q->where('organizer_type', AnnualConference::class)->where('organizer_id', $user->scope_id)
+                  ->orWhere('organizer_type', District::class)->whereIn('organizer_id', $districtIds)
+                  ->orWhere('organizer_type', LocalSociety::class)->whereIn('organizer_id', $accessibleSocietyIds);
+            });
+        } elseif ($user->isDistrictAdmin()) {
+            $eventsQuery->where(function($q) use ($user, $accessibleSocietyIds) {
+                $q->where('organizer_type', District::class)->where('organizer_id', $user->scope_id)
+                  ->orWhere('organizer_type', LocalSociety::class)->whereIn('organizer_id', $accessibleSocietyIds);
+            });
+        } else {
+            // Society Admin
+            $eventsQuery->where('organizer_type', LocalSociety::class)->whereIn('organizer_id', $accessibleSocietyIds);
+        }
+        $archives['events'] = $eventsQuery->get();
 
         return Inertia::render('Settings/Archive', [
             'archives' => $archives,
