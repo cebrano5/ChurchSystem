@@ -348,9 +348,9 @@ export default function EventsShow({ event, canManage, eligibleMembers = [], ser
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', opacity: 0.7 }} disabled>
+                    <a href={route('events.attendance.pdf', event.id)} target="_blank" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', textDecoration: 'none' }}>
                         Export PDF
-                    </button>
+                    </a>
                     <button onClick={() => setShowAttendance(true)} className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>
                         Record Attendance
                     </button>

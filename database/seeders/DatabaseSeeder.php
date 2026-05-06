@@ -111,10 +111,11 @@ class DatabaseSeeder extends Seeder
 
         // 6. Create Sample Event & Attendance
         $event = Event::create([
-            'local_society_id' => $society->id,
-            'name'             => 'Sunday Morning Worship',
-            'event_date'       => Carbon::now()->subDays(2),
-            'location'         => 'Main Sanctuary',
+            'organizer_id'   => $society->id,
+            'organizer_type' => LocalSociety::class,
+            'name'           => 'Sunday Morning Worship',
+            'event_date'     => Carbon::now()->subDays(2),
+            'location'       => 'Main Sanctuary',
         ]);
 
         // 5 members attended
@@ -131,7 +132,8 @@ class DatabaseSeeder extends Seeder
                 'member_id'        => $member->id,
                 'local_society_id' => $society->id,
                 'amount'           => 100.00 + ($index * 10),
-                'donation_type'    => 'Tithe',
+                'type'             => 'inflow',
+                'category'         => 'Tithe',
                 'donation_date'    => Carbon::now()->subDays(2),
                 'payment_method'   => 'Cash',
             ]);

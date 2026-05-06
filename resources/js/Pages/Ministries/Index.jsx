@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { PlusIcon, PencilSquareIcon, TrashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/Components/ConfirmModal';
 
 export default function MinistriesIndex({ ministries, canManage }) {
@@ -26,9 +26,9 @@ export default function MinistriesIndex({ ministries, canManage }) {
 
             <ConfirmModal
                 show={!!confirm}
-                title="Delete Global Ministry?"
-                message={`Are you sure you want to delete "${confirm?.name}"? This action will dissolve the ministry across all societies but will not delete the members themselves.`}
-                confirmLabel="Delete Ministry"
+                title="Archive Ministry?"
+                message={`Are you sure you want to archive "${confirm?.name}"? This will hide it from active lists but preserve all member data.`}
+                confirmLabel="Archive Ministry"
                 onConfirm={handleDelete}
                 onCancel={() => setConfirm(null)}
             />
@@ -40,12 +40,17 @@ export default function MinistriesIndex({ ministries, canManage }) {
                         {data.length} global ministry types
                     </div>
                 </div>
-                {canManage && (
-                    <Link href={route('ministries.create')} className="btn-primary">
-                        <PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} />
-                        Define New Ministry
-                    </Link>
-                )}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <a href={route('ministries.pdf')} target="_blank" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <DocumentArrowDownIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Export PDF
+                    </a>
+                    {canManage && (
+                        <Link href={route('ministries.create')} className="btn-primary">
+                            <PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} />
+                            Define New Ministry
+                        </Link>
+                    )}
+                </div>
             </div>
 
             <div className="card" style={{ padding: '0' }}>

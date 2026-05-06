@@ -57,5 +57,11 @@ class District extends Model
     {
         return $this->morphMany(Event::class, 'organizer');
     }
+
+    /** The pastor(s) assigned to this district level */
+    public function pastors()
+    {
+        return $this->morphMany(Pastor::class, 'scope');
+    }
 }
 

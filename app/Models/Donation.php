@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Donation Model
@@ -13,11 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Donation extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'member_id', 'local_society_id', 'amount',
-        'donation_type', 'donation_date', 'payment_method', 'notes'
+        'type', 'category', 'donation_date', 'payment_method', 'notes'
     ];
 
     protected $casts = [

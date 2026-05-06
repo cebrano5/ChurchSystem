@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { PlusIcon, XMarkIcon, CalendarIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon, CalendarIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import InputError from '@/Components/InputError';
 
 const LEVEL_STYLES = {
@@ -247,11 +247,16 @@ export default function EventsIndex({ events, canManage }) {
                         {events.data?.length ?? 0} records this page
                     </div>
                 </div>
-                {canManage && (
-                    <button onClick={() => setShowCreate(!showCreate)} className={showCreate ? 'btn-secondary' : 'btn-primary'}>
-                        {showCreate ? <><XMarkIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Cancel</> : <><PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Create Event</>}
-                    </button>
-                )}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <a href={route('events.pdf')} target="_blank" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <DocumentArrowDownIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Export PDF
+                    </a>
+                    {canManage && (
+                        <button onClick={() => setShowCreate(!showCreate)} className={showCreate ? 'btn-secondary' : 'btn-primary'}>
+                            {showCreate ? <><XMarkIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Cancel</> : <><PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Create Event</>}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Table */}
@@ -346,7 +351,7 @@ export default function EventsIndex({ events, canManage }) {
                                                         className="btn-icon"
                                                         style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', padding: '0.4rem 0.8rem', fontSize: '0.72rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                                                         onClick={(e) => { e.stopPropagation(); handleDelete(event); }}>
-                                                        <TrashIcon style={{ width: '0.8rem', height: '0.8rem' }} /> Delete
+                                                        <TrashIcon style={{ width: '0.8rem', height: '0.8rem' }} /> Archive
                                                     </button>
                                                 )}
                                             </div>
@@ -408,14 +413,14 @@ export default function EventsIndex({ events, canManage }) {
                         </div>
 
                         <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#fff', marginBottom: '0.75rem' }}>
-                            {deletingEvent.series_instances > 1 ? 'Delete Entire Series?' : 'Delete Event?'}
+                            {deletingEvent.series_instances > 1 ? 'Archive Entire Series?' : 'Archive Event?'}
                         </h3>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-                            Are you sure you want to delete <span style={{ color: '#fff', fontWeight: 700 }}>"{deletingEvent.name}"</span>? 
+                            Are you sure you want to archive <span style={{ color: '#fff', fontWeight: 700 }}>"{deletingEvent.name}"</span>? 
                             {deletingEvent.series_instances > 1 ? (
-                                <> This will permanently remove <span style={{ color: 'var(--gold)', fontWeight: 800 }}>all {deletingEvent.series_instances} instances</span> in this recurring series.</>
+                                <> This will hide <span style={{ color: 'var(--gold)', fontWeight: 800 }}>all {deletingEvent.series_instances} instances</span> in this recurring series but preserve their data.</>
                             ) : (
-                                <> This action will permanently remove this record and cannot be undone.</>
+                                <> This action will hide this record but preserve its data.</>
                             )}
                         </p>
 
@@ -438,7 +443,7 @@ export default function EventsIndex({ events, canManage }) {
                                     fontWeight: 700 
                                 }}
                             >
-                                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                                {isDeleting ? 'Archiving...' : 'Confirm Archive'}
                             </button>
                         </div>
                     </div>

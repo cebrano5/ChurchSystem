@@ -3,7 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { 
     PencilSquareIcon, ArrowLeftIcon, UserGroupIcon, 
-    MapPinIcon, IdentificationIcon, PlusIcon, XMarkIcon, TrashIcon 
+    MapPinIcon, IdentificationIcon, PlusIcon, XMarkIcon, TrashIcon,
+    DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
 import Modal from '@/Components/Modal';
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -100,6 +101,9 @@ export default function MinistryShow({ ministry, scopedMembers, availableMembers
                     <div className="section-title" style={{ fontSize: '1.5rem' }}>{ministry.name}</div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <a href={route('ministries.show-pdf', ministry.id)} target="_blank" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+                        <DocumentArrowDownIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Export PDF
+                    </a>
                     {canManage && (
                         <Link href={route('ministries.edit', ministry.id)} className="btn-secondary">
                             <PencilSquareIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Edit Info

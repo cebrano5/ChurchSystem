@@ -69,5 +69,11 @@ class AnnualConference extends Model
     {
         return $this->morphMany(Event::class, 'organizer');
     }
+
+    /** The pastor(s) assigned to this conference level */
+    public function pastors()
+    {
+        return $this->morphMany(Pastor::class, 'scope');
+    }
 }
 

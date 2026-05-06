@@ -49,7 +49,7 @@ class DistrictController extends Controller
             abort(403);
         }
 
-        $district->load(['annualConference', 'admins']);
+        $district->load(['annualConference', 'admins', 'pastors']);
         $societyIds = $district->localSocieties()->pluck('id')->toArray();
 
         $upcomingEvents = \App\Models\Event::where(function($q) use ($district, $societyIds) {
@@ -70,7 +70,9 @@ class DistrictController extends Controller
             'admin'          => $district->admins->first(),
             'societyCount'   => $district->localSocieties()->count(),
             'memberCount'    => $district->members()->count(),
-            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)
+                                    ->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")
+                                    ->value('net') ?? 0,
             'upcomingEvents' => $upcomingEvents,
             'societies'      => $district->localSocieties()->withCount('members')->orderBy('name')->get(),
             'recentMembers'  => $district->members()->orderBy('created_at', 'desc')->take(6)->get(),

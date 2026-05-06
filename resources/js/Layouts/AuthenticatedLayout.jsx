@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import {
     HomeIcon, UserGroupIcon, BuildingOfficeIcon, GlobeAltIcon,
     CalendarIcon, CurrencyDollarIcon, ArrowRightOnRectangleIcon,
-    MapPinIcon, ChartBarIcon, Bars3Icon, XMarkIcon, MapIcon,
+    MapPinIcon, ChartBarIcon, Bars3Icon, XMarkIcon, MapIcon, Cog6ToothIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 import Toast from '@/Components/Toast';
 
@@ -19,10 +20,12 @@ const ITEM_COLORS = {
     'events.index':      '#f472b6',
     'donations.index':   '#fbbf24',
     'map.index':         '#ef4444',
+    'settings':          '#94a3b8',
+    'pastors.index':     '#6366f1',
 };
 
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, features } = usePage().props;
     const user = auth.user;
     const [toast, setToast] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -57,10 +60,17 @@ export default function AuthenticatedLayout({ header, children }) {
             {
                 label: 'Ministry',
                 items: [
-                    { name: 'Members',             routeName: 'members.index',    icon: UserGroupIcon,      show: true },
-                    { name: 'Ministries',           routeName: 'ministries.index', icon: ChartBarIcon,       show: true },
-                    { name: 'Events & Attendance',  routeName: 'events.index',     icon: CalendarIcon,       show: true },
-                    { name: 'Donations',            routeName: 'donations.index',  icon: CurrencyDollarIcon, show: true },
+                    { name: 'Pastors',              routeName: 'pastors.index',    icon: UserIcon,           show: features?.pastors_module && ['national_admin', 'conference_admin', 'district_admin', 'society_admin'].includes(user.role) },
+                    { name: 'Members',              routeName: 'members.index',    icon: UserGroupIcon,      show: true },
+                    { name: 'Ministries',            routeName: 'ministries.index', icon: ChartBarIcon,       show: true },
+                    { name: 'Events & Attendance',   routeName: 'events.index',     icon: CalendarIcon,       show: true },
+                    { name: 'Financial Statement',   routeName: 'donations.index',  icon: CurrencyDollarIcon, show: true },
+                ],
+            },
+            {
+                label: 'Account',
+                items: [
+                    { name: 'Settings', routeName: 'settings', icon: Cog6ToothIcon, show: true },
                 ],
             },
         ];

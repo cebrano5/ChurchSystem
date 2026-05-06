@@ -17,8 +17,8 @@ const CARD_CONFIG = {
     conferences:      { icon: GlobeAltIcon,       color: '#fb923c', glow: 'rgba(251,146,60,0.4)',  label: 'Conferences' },
     events:           { icon: CalendarIcon,       color: '#f472b6', glow: 'rgba(244,114,182,0.4)', label: 'Events' },
     total_events:     { icon: CalendarIcon,       color: '#f472b6', glow: 'rgba(244,114,182,0.4)', label: 'Total Events' },
-    donations:        { icon: CurrencyDollarIcon, color: '#ffeb3b', glow: 'rgba(255,235,59,0.4)',  label: 'Donations' },
-    total_donations:  { icon: CurrencyDollarIcon, color: '#ffeb3b', glow: 'rgba(255,235,59,0.4)',  label: 'Total Donations' },
+    donations:        { icon: CurrencyDollarIcon, color: '#ffeb3b', glow: 'rgba(255,235,59,0.4)',  label: 'Financial Records' },
+    total_donations:  { icon: CurrencyDollarIcon, color: '#ffeb3b', glow: 'rgba(255,235,59,0.4)',  label: 'Financial Records' },
     ministries:       { icon: ChartBarIcon,       color: '#4ade80', glow: 'rgba(74,222,128,0.4)',  label: 'Ministries' },
 };
 

@@ -37,7 +37,7 @@ class DashboardController extends Controller
                     'districts'   => District::count(),
                     'societies'   => LocalSociety::count(),
                     'members'     => Member::count(),
-                    'total_donations' => Donation::sum('amount'),
+                    'total_donations' => Donation::selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")->value('net') ?? 0,
                 ],
                 'role' => 'national_admin',
                 'upcomingEvents' => $upcomingEvents,
@@ -76,7 +76,7 @@ class DashboardController extends Controller
                     'districts' => $conference->districts()->count(),
                     'societies' => $conference->localSocieties()->count(),
                     'members'   => $conference->members()->count(),
-                    'donations' => Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+                    'donations' => Donation::whereIn('local_society_id', $societyIds)->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")->value('net') ?? 0,
                 ],
                 'role' => 'conference_admin',
                 'scopeName' => $conference->name,
@@ -109,7 +109,7 @@ class DashboardController extends Controller
                 'stats' => [
                     'societies' => $district->localSocieties()->count(),
                     'members'   => $district->members()->count(),
-                    'donations' => Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+                    'donations' => Donation::whereIn('local_society_id', $societyIds)->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")->value('net') ?? 0,
                 ],
                 'role' => 'district_admin',
                 'scopeName' => $district->name,
@@ -136,7 +136,9 @@ class DashboardController extends Controller
                     'members'       => $society->members()->count(),
                     'ministries'    => $society->ministries()->count(),
                     'upcomingEvents'=> $society->events()->where('event_date', '>=', today())->count(),
-                    'donations'     => $society->donations()->sum('amount'),
+                    'donations'     => Donation::where('local_society_id', $society->id)
+                                                ->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")
+                                                ->value('net') ?? 0,
                 ],
                 'role' => 'society_admin',
                 'scopeName' => $society->name,

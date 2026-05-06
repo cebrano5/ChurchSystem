@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { PlusIcon, PencilSquareIcon, TrashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/Components/ConfirmModal';
 
 export default function MembersIndex({ members, canManage }) {
@@ -22,9 +22,9 @@ export default function MembersIndex({ members, canManage }) {
 
             <ConfirmModal
                 show={!!confirm}
-                title="Remove Member?"
-                message={`Are you sure you want to remove ${confirm?.name ?? 'this member'}? This action cannot be undone.`}
-                confirmLabel="Remove Member"
+                title="Archive Member?"
+                message={`Are you sure you want to archive ${confirm?.name ?? 'this member'}? They will be hidden from all lists but their data will be preserved.`}
+                confirmLabel="Archive Member"
                 onConfirm={handleDelete}
                 onCancel={() => setConfirm(null)}
             />
@@ -36,12 +36,17 @@ export default function MembersIndex({ members, canManage }) {
                         {members?.total ?? memberData.length} total records
                     </div>
                 </div>
-                {canManage && (
-                    <Link href={route('members.create')} className="btn-primary">
-                        <PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} />
-                        Add Member
-                    </Link>
-                )}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <a href={route('members.pdf')} target="_blank" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <DocumentArrowDownIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Export PDF
+                    </a>
+                    {canManage && (
+                        <Link href={route('members.create')} className="btn-primary">
+                            <PlusIcon style={{ width: '0.9rem', height: '0.9rem' }} />
+                            Add Member
+                        </Link>
+                    )}
+                </div>
             </div>
 
             <div className="card">
@@ -91,7 +96,7 @@ export default function MembersIndex({ members, canManage }) {
                                                     className="btn-icon"
                                                     style={{ color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
                                                 >
-                                                    <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Delete
+                                                    <TrashIcon style={{ width: '0.9rem', height: '0.9rem' }} /> Archive
                                                 </button>
                                             </div>
                                         </td>

@@ -77,8 +77,17 @@ export default function SocietiesIndex({ societies }) {
                                     <td>{s.district?.name || '—'}</td>
                                     <td>{s.district?.annual_conference?.name || '—'}</td>
                                     <td>
-                                        <div style={{ fontSize: '0.82rem' }}>{s.contact_person}</div>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{s.contact_phone}</div>
+                                        {s.pastors?.[0] ? (
+                                            <>
+                                                <div style={{ fontSize: '0.82rem', color: 'var(--gold)', fontWeight: 600 }}>{s.pastors[0].full_name}</div>
+                                                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{s.pastors[0].phone}</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div style={{ fontSize: '0.82rem' }}>{s.contact_person}</div>
+                                                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{s.contact_phone}</div>
+                                            </>
+                                        )}
                                     </td>
                                     <td>{s.members_count}</td>
                                     <td>

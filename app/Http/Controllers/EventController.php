@@ -6,6 +6,7 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EventController extends Controller
 {
@@ -214,7 +215,7 @@ class EventController extends Controller
     }
 
     /**
-     * Remove the specified event.
+     * Archive (soft delete) the specified event.
      */
     public function destroy(Event $event)
     {
@@ -225,13 +226,37 @@ class EventController extends Controller
         }
 
         if ($event->series_id) {
-            Event::where('series_id', $event->series_id)->delete();
-            return redirect()->route('events.index')->with('success', 'Entire event series deleted successfully.');
+            Event::where('series_id', $event->series_id)->delete(); // Soft deletes all in series
+            return redirect()->route('events.index')->with('success', 'Entire event series archived successfully.');
         }
 
-        $event->delete();
+        $event->delete(); // Soft delete
 
-        return redirect()->route('events.index')->with('success', 'Event deleted.');
+        return redirect()->route('events.index')->with('success', 'Event archived successfully.');
+    }
+
+    /**
+     * Export events as PDF, scoped to the user's hierarchy.
+     */
+    public function pdf(Request $request)
+    {
+        $user = $request->user();
+
+        $query = Event::with('organizer')->withCount('attendance')->orderBy('event_date', 'desc');
+
+        if (!$user->isNationalAdmin()) {
+            $query->where('organizer_type', $user->scope_type)->where('organizer_id', $user->scope_id);
+        }
+
+        $events = $query->get();
+
+        $pdf = Pdf::loadView('pdf.events', [
+            'events' => $events,
+            'user'   => $user,
+            'date'   => now()->format('F d, Y'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('events-' . now()->format('Ymd') . '.pdf');
     }
 
     /**
@@ -263,5 +288,45 @@ class EventController extends Controller
             'seriesName'=> $firstEvent->name,
             'organizer' => $firstEvent->organizer?->name ?? 'National Admin',
         ]);
+    }
+    /**
+     * Export the attendance roster for a specific event as PDF.
+     */
+    public function attendancePdf(Request $request, Event $event)
+    {
+        $user = $request->user();
+
+        // Check if user has access to this event
+        $canAccess = $user->isNationalAdmin() || ($event->organizer_type === $user->scope_type && $event->organizer_id == $user->scope_id);
+        
+        // If not strictly the organizer, they might still have access if they are a higher-level admin in the same hierarchy.
+        // Similar to the index() logic. For simplicity, we ensure they can see it if it's in their hierarchy.
+        if (!$canAccess) {
+            if ($user->isConferenceAdmin()) {
+                $districtIds = \App\Models\District::where('annual_conference_id', $user->scope_id)->pluck('id')->toArray();
+                $societyIds = \App\Models\LocalSociety::whereIn('district_id', $districtIds)->pluck('id')->toArray();
+                $canAccess = ($event->organizer_type === \App\Models\District::class && in_array($event->organizer_id, $districtIds)) ||
+                             ($event->organizer_type === \App\Models\LocalSociety::class && in_array($event->organizer_id, $societyIds));
+            } elseif ($user->isDistrictAdmin()) {
+                $societyIds = \App\Models\LocalSociety::where('district_id', $user->scope_id)->pluck('id')->toArray();
+                $canAccess = ($event->organizer_type === \App\Models\LocalSociety::class && in_array($event->organizer_id, $societyIds));
+            }
+        }
+
+        if (!$canAccess) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $event->load(['organizer', 'members' => function($q) {
+            $q->orderBy('first_name');
+        }]);
+
+        $pdf = Pdf::loadView('pdf.event_attendance', [
+            'event' => $event,
+            'user'  => $user,
+            'date'  => now()->format('F d, Y'),
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('attendance-' . $event->id . '.pdf');
     }
 }

@@ -55,9 +55,15 @@ class LocalSociety extends Model
         return $this->morphMany(User::class, 'scope');
     }
 
+    /** The pastor(s) assigned to this local society */
+    public function pastors()
+    {
+        return $this->morphMany(Pastor::class, 'scope');
+    }
+
     /** Convenience: total donations for this society */
     public function getTotalDonationsAttribute(): float
     {
-        return $this->donations()->sum('amount');
+        return $this->donations()->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")->value('net') ?? 0;
     }
 }

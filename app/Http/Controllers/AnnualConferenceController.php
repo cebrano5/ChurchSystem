@@ -43,7 +43,7 @@ class AnnualConferenceController extends Controller
         $user = $request->user();
         if (!$user->isNationalAdmin()) abort(403);
 
-        $conference->load(['admins']);
+        $conference->load(['admins', 'pastors']);
         $societyIds = $conference->localSocieties()->pluck('local_societies.id')->toArray();
 
         return Inertia::render('Conferences/Show', [
@@ -52,7 +52,9 @@ class AnnualConferenceController extends Controller
             'districtCount'  => $conference->districts()->count(),
             'societyCount'   => count($societyIds),
             'memberCount'    => $conference->members()->count(),
-            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)->sum('amount'),
+            'totalDonations' => \App\Models\Donation::whereIn('local_society_id', $societyIds)
+                                    ->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")
+                                    ->value('net') ?? 0,
             'districts'      => $conference->districts()->withCount('localSocieties')->orderBy('name')->get(),
             'recentMembers'  => $conference->members()->orderBy('members.created_at', 'desc')->take(6)->get(),
         ]);

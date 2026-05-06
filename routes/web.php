@@ -40,24 +40,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Society Admin & Above
     Route::middleware('role:national_admin|conference_admin|district_admin|society_admin')->group(function () {
+        Route::resource('pastors', \App\Http\Controllers\PastorController::class);
+        
         Route::resource('members', \App\Http\Controllers\MemberController::class)->except(['show']);
+        Route::get('members/pdf', [\App\Http\Controllers\MemberController::class, 'pdf'])->name('members.pdf');
 
         Route::resource('ministries', \App\Http\Controllers\MinistryController::class);
         Route::post('ministries/{ministry}/members', [\App\Http\Controllers\MinistryController::class, 'addMember'])->name('ministries.members.add');
         Route::delete('ministries/{ministry}/members/{member}', [\App\Http\Controllers\MinistryController::class, 'removeMember'])->name('ministries.members.remove');
+        Route::get('ministries/pdf', [\App\Http\Controllers\MinistryController::class, 'pdf'])->name('ministries.pdf');
+        Route::get('ministries/{ministry}/pdf', [\App\Http\Controllers\MinistryController::class, 'showPdf'])->name('ministries.show-pdf');
         
         // All admins can view, create, update, and delete events within their scope
         Route::get('events/series/{series_id}', [\App\Http\Controllers\EventController::class, 'series'])->name('events.series');
         Route::resource('events', \App\Http\Controllers\EventController::class);
+        Route::get('events/pdf', [\App\Http\Controllers\EventController::class, 'pdf'])->name('events.pdf');
+        Route::get('events/{event}/attendance/pdf', [\App\Http\Controllers\EventController::class, 'attendancePdf'])->name('events.attendance.pdf');
 
         // Society Admins can store, all admins can view index.
-        Route::resource('donations', \App\Http\Controllers\DonationController::class)->only(['index', 'store']);
+        Route::resource('donations', \App\Http\Controllers\DonationController::class)->only(['index', 'store', 'destroy']);
+        Route::get('donations/pdf', [\App\Http\Controllers\DonationController::class, 'pdf'])->name('donations.pdf');
 
         // Attendance Recording
         Route::post('attendance', [\App\Http\Controllers\AttendanceController::class, 'store'])->name('attendance.store');
         Route::post('attendance/remove', [\App\Http\Controllers\AttendanceController::class, 'remove'])->name('attendance.remove');
-
     });
+
+    // Settings - available to ALL authenticated admins
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'edit'])->name('settings');
+    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
     // Profile (Standard Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

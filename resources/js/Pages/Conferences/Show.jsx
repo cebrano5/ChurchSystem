@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import {
     UserGroupIcon, CurrencyDollarIcon,
     MapPinIcon, UserIcon,
     ArrowLeftIcon, PencilSquareIcon, BuildingOfficeIcon,
-    GlobeAltIcon, CalendarIcon,
+    GlobeAltIcon, CalendarIcon, AcademicCapIcon, PhoneIcon,
+    XMarkIcon, EnvelopeIcon, InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 
 function StatCard({ icon: Icon, label, value, color, glow }) {
@@ -37,6 +39,8 @@ function formatCurrency(val) {
 }
 
 export default function ConferenceShow({ conference, admin, districtCount, societyCount, memberCount, totalDonations, districts, recentMembers }) {
+    const [selectedPastor, setSelectedPastor] = useState(null);
+
     return (
         <AuthenticatedLayout header={conference.name}>
             <Head title={conference.name} />
@@ -82,49 +86,90 @@ export default function ConferenceShow({ conference, admin, districtCount, socie
                     <StatCard icon={MapPinIcon}         label="Districts"       value={districtCount}              color="#fb923c" glow="rgba(251,146,60,0.25)" />
                     <StatCard icon={BuildingOfficeIcon} label="Local Societies"  value={societyCount}               color="#38bdf8" glow="rgba(56,189,248,0.25)" />
                     <StatCard icon={UserGroupIcon}      label="Total Members"   value={memberCount}                color="#a78bfa" glow="rgba(167,139,250,0.25)" />
-                    <StatCard icon={CurrencyDollarIcon} label="Total Donations" value={formatCurrency(totalDonations)} color="#ffeb3b" glow="rgba(255,235,59,0.2)" />
+                    <StatCard icon={CurrencyDollarIcon} label="Financial Records" value={formatCurrency(totalDonations)} color="#ffeb3b" glow="rgba(255,235,59,0.2)" />
                 </div>
 
                 {/* Main Body */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }}>
 
-                    {/* Left: Districts */}
-                    <div style={{ background: 'rgba(28, 50, 84, 0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: '1.75rem' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1.25rem' }}>
-                            <MapPinIcon style={{ width: '1.1rem', color: 'var(--gold)' }} /> Districts
-                        </h3>
-                        {districts.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>No districts yet.</div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                {districts.map(d => (
-                                    <Link key={d.id} href={route('districts.show', d.id)} style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                        padding: '0.9rem 1rem', borderRadius: '14px',
-                                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)',
-                                        textDecoration: 'none', transition: 'all 0.2s',
-                                    }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.2)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(251,146,60,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <MapPinIcon style={{ width: '0.9rem', color: '#fb923c' }} />
+                    {/* Left Column */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        
+                        {/* Assigned Pastors - PROMINENT */}
+                        <div style={{ background: 'rgba(28, 50, 84, 0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: '1.75rem' }}>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                                <AcademicCapIcon style={{ width: '1.1rem', color: '#fb923c' }} /> Assigned Pastors
+                            </h3>
+                            {conference.pastors && conference.pastors.length > 0 ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                                    {conference.pastors.map(p => (
+                                        <div key={p.id} 
+                                            onClick={() => setSelectedPastor(p)}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.25rem', borderRadius: '20px',
+                                                background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.08)',
+                                                cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(251,146,60,0.6)'; e.currentTarget.style.transform = 'scale(1.02) translateY(-4px)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}
+                                        >
+                                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', fontWeight: 800, color: '#fff', flexShrink: 0 }}>
+                                                {p.full_name?.charAt(0).toUpperCase()}
                                             </div>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{d.name}</span>
+                                            <div>
+                                                <div style={{ fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{p.full_name}</div>
+                                                <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: '#fb923c', letterSpacing: '0.05em', marginTop: '0.1rem' }}>
+                                                    {p.role_or_position || 'Pastor'}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.3rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                                                    <PhoneIcon style={{ width: '0.8rem' }} /> {p.phone}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '8px' }}>
-                                            {d.local_societies_count} societies
-                                        </span>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px' }}>No pastors assigned.</div>
+                            )}
+                        </div>
+
+                        {/* Districts */}
+                        <div style={{ background: 'rgba(28, 50, 84, 0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: '1.75rem' }}>
+                            <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1.25rem' }}>
+                                <MapPinIcon style={{ width: '1.1rem', color: 'var(--gold)' }} /> Districts
+                            </h3>
+                            {districts.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>No districts yet.</div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                    {districts.map(d => (
+                                        <Link key={d.id} href={route('districts.show', d.id)} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.9rem 1rem', borderRadius: '14px',
+                                            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)',
+                                            textDecoration: 'none', transition: 'all 0.2s',
+                                        }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.2)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(251,146,60,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <MapPinIcon style={{ width: '0.9rem', color: '#fb923c' }} />
+                                                </div>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{d.name}</span>
+                                            </div>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '8px' }}>
+                                                {d.local_societies_count} societies
+                                            </span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Right: Info + Admin + Recent Members */}
+                    {/* Right Column */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
                         {/* Conference Info */}
                         <div style={{ background: 'rgba(28, 50, 84, 0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: '1.75rem' }}>
                             <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -140,12 +185,6 @@ export default function ConferenceShow({ conference, admin, districtCount, socie
                                     <div style={{ fontSize: '0.88rem', color: '#fff', marginTop: '0.15rem', fontWeight: 500 }}>{row.value}</div>
                                 </div>
                             ))}
-                            {conference.description && (
-                                <div style={{ paddingTop: '0.75rem' }}>
-                                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.08em' }}>Description</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.15rem', lineHeight: 1.6 }}>{conference.description}</div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Administrator */}
@@ -155,7 +194,7 @@ export default function ConferenceShow({ conference, admin, districtCount, socie
                             </h3>
                             {admin ? (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#000', flexShrink: 0 }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#fff', flexShrink: 0 }}>
                                         {admin.name?.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
@@ -194,6 +233,95 @@ export default function ConferenceShow({ conference, admin, districtCount, socie
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+
+            {/* ── Pastor Detail Modal ("Bubble Effect") ──────────────── */}
+            {selectedPastor && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
+                    animation: 'fadeIn 0.2s ease-out',
+                }} onClick={() => setSelectedPastor(null)}>
+                    <div style={{
+                        width: '90%', maxWidth: '500px',
+                        background: 'linear-gradient(135deg, #1c3254 0%, #0f1e35 100%)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '32px', padding: '2.5rem',
+                        position: 'relative',
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+                        animation: 'bubbleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }} onClick={e => e.stopPropagation()}>
+                        
+                        <button onClick={() => setSelectedPastor(null)} style={{
+                            position: 'absolute', top: '1.5rem', right: '1.5rem',
+                            width: '36px', height: '36px', borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.05)', border: 'none',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', transition: '0.2s', color: 'var(--text-secondary)'
+                        }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}>
+                            <XMarkIcon style={{ width: '1.2rem' }} />
+                        </button>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.25rem' }}>
+                            <div style={{ 
+                                width: '100px', height: '100px', borderRadius: '30px', 
+                                background: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                fontSize: '2.5rem', fontWeight: 900, color: '#fff',
+                                boxShadow: '0 15px 40px rgba(251,146,60,0.3)'
+                            }}>
+                                {selectedPastor.full_name?.charAt(0).toUpperCase()}
+                            </div>
+                            
+                            <div>
+                                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', margin: 0 }}>{selectedPastor.full_name}</h2>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: '#fb923c', letterSpacing: '0.1em', marginTop: '0.5rem' }}>
+                                    {selectedPastor.role_or_position || 'Pastor'}
+                                </div>
+                            </div>
+
+                            <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.05)', margin: '0.5rem 0' }}></div>
+
+                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                    <PhoneIcon style={{ width: '1.2rem', color: '#fb923c' }} />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Phone Number</div>
+                                        <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 500 }}>{selectedPastor.phone || 'N/A'}</div>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                    <EnvelopeIcon style={{ width: '1.2rem', color: '#fb923c' }} />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Email Address</div>
+                                        <div style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 500 }}>{selectedPastor.email || 'N/A'}</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '1rem', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                    <InformationCircleIcon style={{ width: '1.2rem', color: '#fb923c', marginTop: '0.2rem' }} />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700 }}>Additional Notes</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem', lineHeight: 1.6 }}>
+                                            {selectedPastor.notes || 'No additional notes provided for this pastor.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes bubbleUp { 
+                    from { opacity: 0; transform: scale(0.8) translateY(20px); } 
+                    to { opacity: 1; transform: scale(1) translateY(0); } 
+                }
+            `}</style>
+        </div>
+    </AuthenticatedLayout>
     );
 }

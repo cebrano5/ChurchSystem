@@ -19,7 +19,7 @@ class LocalSocietyController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = LocalSociety::with('district.annualConference')
+        $query = LocalSociety::with(['district.annualConference', 'pastors'])
             ->withCount('members')
             ->with(['admins' => function($q) {
                 $q->limit(1);
@@ -59,6 +59,7 @@ class LocalSocietyController extends Controller
         $society->load([
             'district.annualConference',
             'admins',
+            'pastors',
         ]);
 
         return Inertia::render('Societies/Show', [
@@ -66,7 +67,7 @@ class LocalSocietyController extends Controller
             'admin'         => $society->admins->first(),
             'memberCount'   => $society->members()->count(),
             'ministryCount' => $society->ministries()->count(),
-            'totalDonations'=> $society->donations()->sum('amount'),
+            'totalDonations'=> $society->donations()->selectRaw("SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END) as net")->value('net') ?? 0,
             'upcomingEvents'=> $society->events()
                                 ->where('event_date', '>=', now())
                                 ->orderBy('event_date')

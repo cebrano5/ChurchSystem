@@ -62,88 +62,106 @@ export default function ConfirmModal({
                 style={{
                     background: 'linear-gradient(160deg, #1c3254 0%, #162945 100%)',
                     border: '1px solid rgba(212,160,23,0.2)',
-                    borderRadius: '20px',
-                    padding: '2rem',
+                    borderRadius: '28px', // More bubbly rounded corners
+                    padding: '2.25rem',
                     width: '100%',
-                    maxWidth: '420px',
-                    boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
-                    animation: 'springPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    maxWidth: '440px',
+                    boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)',
+                    animation: 'bubblePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     position: 'relative',
+                    overflow: 'hidden',
                 }}
             >
+                {/* Decorative Bubble Glow */}
+                <div style={{
+                    position: 'absolute',
+                    top: '-50px',
+                    left: '-50px',
+                    width: '150px',
+                    height: '150px',
+                    background: 'radial-gradient(circle, rgba(212,160,23,0.1) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                }}></div>
+
                 {/* Close X */}
                 <button
                     onClick={onCancel}
                     style={{
                         position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
+                        top: '1.25rem',
+                        right: '1.25rem',
                         background: 'rgba(255,255,255,0.06)',
                         border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '8px',
-                        width: '28px',
-                        height: '28px',
+                        borderRadius: '12px',
+                        width: '32px',
+                        height: '32px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
                         color: 'var(--text-secondary)',
-                        transition: 'all 0.15s',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        zIndex: 10,
                     }}
                     onMouseOver={e => {
                         e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
                         e.currentTarget.style.color = 'var(--text-primary)';
+                        e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
                     }}
                     onMouseOut={e => {
                         e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
                         e.currentTarget.style.color = 'var(--text-secondary)';
+                        e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
                     }}
                 >
-                    <XMarkIcon style={{ width: '0.9rem', height: '0.9rem' }} />
+                    <XMarkIcon style={{ width: '1rem', height: '1rem' }} />
                 </button>
 
                 {/* Warning icon */}
                 <div style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '14px',
-                    background: 'rgba(239,68,68,0.12)',
-                    border: '1px solid rgba(239,68,68,0.25)',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '20px',
+                    background: 'rgba(239,68,68,0.15)',
+                    border: '1px solid rgba(239,68,68,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '1.25rem',
+                    marginBottom: '1.5rem',
+                    animation: 'iconPulse 2s infinite ease-in-out',
                 }}>
-                    <ExclamationTriangleIcon style={{ width: '1.5rem', height: '1.5rem', color: '#f87171' }} />
+                    <ExclamationTriangleIcon style={{ width: '1.75rem', height: '1.75rem', color: '#f87171' }} />
                 </div>
 
                 {/* Title */}
                 <h2 style={{
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    fontSize: '1.1rem',
+                    fontSize: '1.25rem',
                     fontWeight: 800,
-                    color: 'var(--text-primary)',
-                    marginBottom: '0.5rem',
+                    color: '#fff',
+                    marginBottom: '0.75rem',
+                    letterSpacing: '-0.02em',
                 }}>
                     {title}
                 </h2>
 
                 {/* Message */}
                 <p style={{
-                    fontSize: '0.875rem',
-                    color: 'var(--text-secondary)',
+                    fontSize: '0.9rem',
+                    color: 'rgba(255,255,255,0.6)',
                     lineHeight: 1.6,
-                    marginBottom: '1.75rem',
+                    marginBottom: '2rem',
                 }}>
                     {message}
                 </p>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                     <button
                         ref={cancelRef}
                         onClick={onCancel}
                         className="btn-secondary"
+                        style={{ padding: '0.7rem 1.5rem', borderRadius: '14px' }}
                     >
                         Cancel
                     </button>
@@ -152,25 +170,25 @@ export default function ConfirmModal({
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '0.4rem',
-                            padding: '0.6rem 1.25rem',
-                            borderRadius: '10px',
-                            fontSize: '0.82rem',
+                            gap: '0.5rem',
+                            padding: '0.7rem 1.5rem',
+                            borderRadius: '14px',
+                            fontSize: '0.875rem',
                             fontWeight: 700,
-                            background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                             color: '#fff',
                             border: 'none',
                             cursor: 'pointer',
-                            transition: 'all 0.18s',
-                            boxShadow: '0 2px 12px rgba(239,68,68,0.35)',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 15px rgba(239,68,68,0.4)',
                         }}
                         onMouseOver={e => {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(239,68,68,0.5)';
+                            e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                            e.currentTarget.style.boxShadow = '0 8px 25px rgba(239,68,68,0.6)';
                         }}
                         onMouseOut={e => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 12px rgba(239,68,68,0.35)';
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(239,68,68,0.4)';
                         }}
                     >
                         {confirmLabel}
@@ -183,10 +201,14 @@ export default function ConfirmModal({
                     from { opacity: 0; }
                     to   { opacity: 1; }
                 }
-                @keyframes springPop {
-                    0% { opacity: 0; transform: translateY(30px) scale(0.9); }
-                    60% { opacity: 1; transform: translateY(-5px) scale(1.05); }
-                    100% { opacity: 1; transform: translateY(0) scale(1); }
+                @keyframes bubblePop {
+                    0%   { opacity: 0; transform: scale(0.4) translateY(40px); filter: blur(10px); }
+                    70%  { opacity: 1; transform: scale(1.1) translateY(-10px); filter: blur(0px); }
+                    100% { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes iconPulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50%      { transform: scale(1.1); opacity: 0.8; }
                 }
             `}</style>
         </div>
