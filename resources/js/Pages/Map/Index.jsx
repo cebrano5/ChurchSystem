@@ -256,11 +256,11 @@ export default function ChurchMap({ national = [], conferences = [], districts =
                     tempMarkerRef.current.remove();
                     tempMarkerRef.current = null;
                 }
-                alert('Location assigned successfully!');
+                // The global Toast component will catch the flashed 'success' message automatically
             },
             onError: (errors) => {
                 console.error("Save failed:", errors);
-                alert('Failed to save location. Please check your permissions or the selected entity.');
+                // Note: Inertia handles displaying validation errors automatically, or we can use a Toast for errors too.
             }
         });
     };
