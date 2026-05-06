@@ -232,7 +232,6 @@ export default function ConferenceShow({ conference, admin, districtCount, socie
                         </div>
                     </div>
                 </div>
-            </div>
 
             {/* ── Pastor Detail Modal ("Bubble Effect") ──────────────── */}
             {selectedPastor && (
