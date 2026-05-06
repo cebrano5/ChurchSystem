@@ -167,6 +167,19 @@ export default function Settings({ user }) {
                         </div>
                     </Section>
 
+                    {/* Archive Access */}
+                    <Section icon={Cog6ToothIcon} title="System Archive" color="#f87171">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px' }}>
+                            <div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>Archive Container</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>View and restore archived data across the system.</div>
+                            </div>
+                            <Link href={route('settings.archive')} className="btn-secondary" style={{ borderColor: '#f87171', color: '#f87171' }}>
+                                Open Archive
+                            </Link>
+                        </div>
+                    </Section>
+
                     {/* Save Button */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button

@@ -69,6 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Settings - available to ALL authenticated admins
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'edit'])->name('settings');
     Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+    
+    // Archive Module
+    Route::get('/settings/archive', [\App\Http\Controllers\ArchiveController::class, 'index'])->name('settings.archive');
+    Route::post('/settings/archive/{type}/{id}/restore', [\App\Http\Controllers\ArchiveController::class, 'restore'])->name('settings.archive.restore');
+
 
     // Profile (Standard Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
