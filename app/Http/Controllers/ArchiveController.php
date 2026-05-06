@@ -17,19 +17,53 @@ class ArchiveController extends Controller
 {
     public function index(Request $request)
     {
-        // For simplicity and speed in this example, we'll fetch all trashed items.
-        // In a strictly scoped scenario, you might filter these by $request->user()->getAccessibleSocietyIds()
+        $user = $request->user();
+        $archives = [];
+
+        // National Admins see everything
+        if ($user->isNationalAdmin()) {
+            $archives['users'] = User::onlyTrashed()->get();
+            $archives['conferences'] = AnnualConference::onlyTrashed()->get();
+        }
+
+        // Conference Admins see their Districts, and Users within those Districts/Societies
+        if ($user->isNationalAdmin() || $user->isConferenceAdmin()) {
+            $districtsQuery = District::onlyTrashed();
+            if ($user->isConferenceAdmin()) {
+                $districtsQuery->where('annual_conference_id', $user->scope_id);
+                
+                $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
+                $societyIds = LocalSociety::whereIn('district_id', $districtIds)->pluck('id');
+                
+                $archives['users'] = User::onlyTrashed()->where(function($q) use ($districtIds, $societyIds) {
+                    $q->where('scope_type', District::class)->whereIn('scope_id', $districtIds)
+                      ->orWhere('scope_type', LocalSociety::class)->whereIn('scope_id', $societyIds);
+                })->get();
+            }
+            $archives['districts'] = $districtsQuery->get();
+        }
+
+        // District Admins see their Societies, and Users within those Societies
+        if ($user->isNationalAdmin() || $user->isConferenceAdmin() || $user->isDistrictAdmin()) {
+            $societiesQuery = LocalSociety::onlyTrashed();
+            if ($user->isConferenceAdmin()) {
+                $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
+                $societiesQuery->whereIn('district_id', $districtIds);
+            } elseif ($user->isDistrictAdmin()) {
+                $societiesQuery->where('district_id', $user->scope_id);
+                $societyIds = LocalSociety::where('district_id', $user->scope_id)->pluck('id');
+                $archives['users'] = User::onlyTrashed()->where('scope_type', LocalSociety::class)->whereIn('scope_id', $societyIds)->get();
+            }
+            $archives['societies'] = $societiesQuery->get();
+        }
+
+        // All Admins (including Society Admins) see core entities within their accessible societies
+        $accessibleSocietyIds = $user->getAccessibleSocietyIds();
         
-        $archives = [
-            'users' => User::onlyTrashed()->get(),
-            'conferences' => AnnualConference::onlyTrashed()->get(),
-            'districts' => District::onlyTrashed()->get(),
-            'societies' => LocalSociety::onlyTrashed()->get(),
-            'pastors' => Pastor::onlyTrashed()->get(),
-            'members' => Member::onlyTrashed()->get(),
-            'ministries' => Ministry::onlyTrashed()->get(),
-            'events' => Event::onlyTrashed()->get(),
-        ];
+        $archives['pastors'] = Pastor::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        $archives['members'] = Member::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        $archives['ministries'] = Ministry::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        $archives['events'] = Event::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
 
         return Inertia::render('Settings/Archive', [
             'archives' => $archives,

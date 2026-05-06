@@ -4,7 +4,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/Components/ConfirmModal';
 
-const TABS = [
+const ALL_TABS = [
     { id: 'users', label: 'Users & Admins' },
     { id: 'conferences', label: 'Conferences' },
     { id: 'districts', label: 'Districts' },
@@ -16,7 +16,11 @@ const TABS = [
 ];
 
 export default function Archive({ archives }) {
-    const [activeTab, setActiveTab] = useState('users');
+    // Only show tabs for which the controller returned an array (even if empty)
+    const availableTabs = ALL_TABS.filter(tab => archives[tab.id] !== undefined);
+    
+    // Set the first available tab as the active one by default
+    const [activeTab, setActiveTab] = useState(availableTabs.length > 0 ? availableTabs[0].id : '');
     const [confirmRestore, setConfirmRestore] = useState(null); // { type, id, name }
     
     const { post, processing } = useForm();
@@ -59,7 +63,7 @@ export default function Archive({ archives }) {
                     <div>
                         <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#f87171' }}>System Archive Container</h3>
                         <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                            This container holds all soft-deleted records. Restoring a hierarchical record (like a District) 
+                            This container holds all soft-deleted records within your jurisdiction. Restoring a hierarchical record 
                             will make it active again, but you may also need to manually restore its subordinates if they were individually archived.
                         </p>
                     </div>
@@ -67,7 +71,7 @@ export default function Archive({ archives }) {
 
                 {/* Tabs */}
                 <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    {TABS.map(tab => (
+                    {availableTabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
@@ -104,7 +108,7 @@ export default function Archive({ archives }) {
                     {currentRecords.length === 0 ? (
                         <div className="empty-state" style={{ padding: '4rem 2rem' }}>
                             <div className="empty-state-icon" style={{ opacity: 0.5 }}>📦</div>
-                            <div className="empty-state-text">No archived {TABS.find(t => t.id === activeTab)?.label.toLowerCase()} found.</div>
+                            <div className="empty-state-text">No archived {ALL_TABS.find(t => t.id === activeTab)?.label?.toLowerCase() || 'records'} found.</div>
                         </div>
                     ) : (
                         <div style={{ overflowX: 'auto' }}>
