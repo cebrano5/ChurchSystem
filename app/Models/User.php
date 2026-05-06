@@ -20,11 +20,11 @@ use App\Models\District;
  * - 'scope_id' + 'scope_type' link the user to their organizational unit
  *   (polymorphic, so it can point to any model: AnnualConference, District, LocalSociety)
  */
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Trackable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, Trackable;
 
     /**
      * The attributes that are mass assignable.

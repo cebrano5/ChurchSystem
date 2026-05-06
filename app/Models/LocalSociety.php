@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Trackable;
 
 /**
  * LocalSociety Model
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class LocalSociety extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Trackable;
 
     protected $fillable = [
         'district_id', 'name', 'address',

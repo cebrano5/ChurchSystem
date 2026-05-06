@@ -12,6 +12,7 @@ use App\Models\Pastor;
 use App\Models\Member;
 use App\Models\Ministry;
 use App\Models\Event;
+use App\Models\AuditLog;
 
 class ArchiveController extends Controller
 {
@@ -22,20 +23,20 @@ class ArchiveController extends Controller
 
         // National Admins see everything
         if ($user->isNationalAdmin()) {
-            $archives['users'] = User::onlyTrashed()->get();
-            $archives['conferences'] = AnnualConference::onlyTrashed()->get();
+            $archives['users'] = User::onlyTrashed()->with('deletedByUser')->get();
+            $archives['conferences'] = AnnualConference::onlyTrashed()->with('deletedByUser')->get();
         }
 
         // Conference Admins see their Districts, and Users within those Districts/Societies
         if ($user->isNationalAdmin() || $user->isConferenceAdmin()) {
-            $districtsQuery = District::onlyTrashed();
+            $districtsQuery = District::onlyTrashed()->with('deletedByUser');
             if ($user->isConferenceAdmin()) {
                 $districtsQuery->where('annual_conference_id', $user->scope_id);
                 
                 $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
                 $societyIds = LocalSociety::whereIn('district_id', $districtIds)->pluck('id');
                 
-                $archives['users'] = User::onlyTrashed()->where(function($q) use ($districtIds, $societyIds) {
+                $archives['users'] = User::onlyTrashed()->with('deletedByUser')->where(function($q) use ($districtIds, $societyIds) {
                     $q->where('scope_type', District::class)->whereIn('scope_id', $districtIds)
                       ->orWhere('scope_type', LocalSociety::class)->whereIn('scope_id', $societyIds);
                 })->get();
@@ -45,14 +46,14 @@ class ArchiveController extends Controller
 
         // District Admins see their Societies, and Users within those Societies
         if ($user->isNationalAdmin() || $user->isConferenceAdmin() || $user->isDistrictAdmin()) {
-            $societiesQuery = LocalSociety::onlyTrashed();
+            $societiesQuery = LocalSociety::onlyTrashed()->with('deletedByUser');
             if ($user->isConferenceAdmin()) {
                 $districtIds = District::where('annual_conference_id', $user->scope_id)->pluck('id');
                 $societiesQuery->whereIn('district_id', $districtIds);
             } elseif ($user->isDistrictAdmin()) {
                 $societiesQuery->where('district_id', $user->scope_id);
                 $societyIds = LocalSociety::where('district_id', $user->scope_id)->pluck('id');
-                $archives['users'] = User::onlyTrashed()->where('scope_type', LocalSociety::class)->whereIn('scope_id', $societyIds)->get();
+                $archives['users'] = User::onlyTrashed()->with('deletedByUser')->where('scope_type', LocalSociety::class)->whereIn('scope_id', $societyIds)->get();
             }
             $archives['societies'] = $societiesQuery->get();
         }
@@ -61,7 +62,7 @@ class ArchiveController extends Controller
         $accessibleSocietyIds = $user->getAccessibleSocietyIds();
         
         // Pastors use polymorphic scoping (scope_type and scope_id)
-        $pastorsQuery = Pastor::onlyTrashed();
+        $pastorsQuery = Pastor::onlyTrashed()->with('deletedByUser');
         if ($user->isNationalAdmin()) {
             // National admin sees all pastors
         } elseif ($user->isConferenceAdmin()) {
@@ -82,11 +83,11 @@ class ArchiveController extends Controller
         }
         $archives['pastors'] = $pastorsQuery->get();
 
-        $archives['members'] = Member::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
-        $archives['ministries'] = Ministry::onlyTrashed()->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        $archives['members'] = Member::onlyTrashed()->with('deletedByUser')->whereIn('local_society_id', $accessibleSocietyIds)->get();
+        $archives['ministries'] = Ministry::onlyTrashed()->with('deletedByUser')->whereIn('local_society_id', $accessibleSocietyIds)->get();
         
         // Events use polymorphic scoping (organizer_type and organizer_id)
-        $eventsQuery = Event::onlyTrashed();
+        $eventsQuery = Event::onlyTrashed()->with('deletedByUser');
         if ($user->isNationalAdmin()) {
             // National admin sees all events
         } elseif ($user->isConferenceAdmin()) {
@@ -107,8 +108,14 @@ class ArchiveController extends Controller
         }
         $archives['events'] = $eventsQuery->get();
 
+        $activityLogs = AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(100)
+            ->get();
+
         return Inertia::render('Settings/Archive', [
             'archives' => $archives,
+            'activityLogs' => $activityLogs,
             'canManage' => true,
         ]);
     }
